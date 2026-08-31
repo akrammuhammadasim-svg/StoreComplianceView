@@ -1,0 +1,3233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SRL Store Entry — Sale Compliance</title>
+<style>
+:root{
+  --ink:#10203A; --ink-soft:#4A5A72; --ink-faint:#8494A8;
+  --canvas:#EEF1F5; --surface:#FFFFFF; --line:#D3DAE3; --line-soft:#E6EAF0;
+  --sapphire:#17457F; --sapphire-dark:#0F3363; --sapphire-tint:#E8EFF8;
+  --short:#B3261E; --short-tint:#FBECEB;
+  --over:#8A5A00; --over-tint:#FBF3E4;
+  --ok:#1B6B4A; --ok-tint:#E7F2ED;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r:6px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--sans);background:var(--canvas);color:var(--ink);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 40px}
+.hidden{display:none !important}
+
+.mast{background:var(--sapphire);color:#fff;padding:16px 0 14px;border-bottom:3px solid var(--sapphire-dark)}
+.mast .wrap{padding-bottom:0}
+.mast-title{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:0}
+.mast-sub{margin:3px 0 0;font-size:13px;color:#B9CBE4}
+
+.gate{max-width:420px;margin:48px auto;padding:0 16px}
+.gate-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.gate h2{margin:0 0 4px;font-size:19px}
+.gate p{margin:0 0 20px;color:var(--ink-soft);font-size:14px}
+
+label,.lab{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--ink-soft);margin:0 0 5px}
+.req:after{content:" *";color:var(--short)}
+input,select,button,textarea{font-family:inherit;font-size:16px}
+input[type=text],input[type=number],input[type=time],select,textarea{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink)}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--sapphire);outline-offset:1px}
+input.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+input.locked{background:#F4F6F9;color:var(--ink-soft);text-align:center;font-family:var(--mono);font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:var(--r);
+  border:1px solid var(--sapphire);background:var(--sapphire);color:#fff;font-weight:600;cursor:pointer;min-height:46px}
+.btn:hover{background:var(--sapphire-dark)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-line{background:transparent;color:var(--sapphire)}
+.btn-line:hover{background:var(--sapphire-tint)}
+.btn-sm{padding:8px 12px;font-size:14px;min-height:38px}
+.btn-block{width:100%}
+.linkbtn{background:none;border:none;padding:0;color:var(--sapphire);text-decoration:underline;cursor:pointer;font-family:inherit;font-size:12px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-top:16px;overflow:hidden}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line-soft)}
+.card-head h3{margin:0;font-size:15px}
+.card-head .hint{font-size:12px;color:var(--ink-faint)}
+.card-body{padding:16px}
+.card-body + .card-body{padding-top:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+.card-foot{padding:12px 16px;background:#FAFBFD;border-top:1px solid var(--line-soft)}
+
+.daybox{border:1px solid var(--line);border-radius:var(--r);padding:13px;background:#FAFBFD}
+.daybox .big{font-size:19px;font-weight:700;line-height:1.25}
+.daybox .sub{font-size:13px;color:var(--ink-soft);margin-top:2px}
+.daybox.auto{border-left:4px solid var(--ok)}
+.daybox.manual{border-left:4px solid var(--sapphire);background:#FAFBFD}
+.daybox.blocked{border-left:4px solid var(--short);background:var(--short-tint)}
+.pick-task{display:grid;gap:10px;margin-top:10px}
+.task{position:relative}
+.task .tstate{display:block;font-size:12px;font-weight:700;margin-top:6px;letter-spacing:.03em}
+.task.done{border-left:4px solid var(--ok)}
+.task.done .tstate{color:var(--ok)}
+.task.todo .tstate{color:var(--ink-faint)}
+.task.locked{opacity:.55;cursor:not-allowed;background:#FAFBFD}
+.task.locked .tstate{color:var(--over)}
+.task.due{border-left:4px solid var(--over)}
+.task.due .tstate{color:var(--over)}
+.grouphead{font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;
+  color:var(--ink-faint);margin:18px 0 0}
+.catchup-chip{display:inline-block;background:#fff;color:var(--ink);font-size:11px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border-radius:4px;white-space:nowrap}
+.tape.catchup{background:var(--ink)}
+.choice{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.blocker{max-width:460px;margin:56px auto;padding:0 16px}
+.pick-task .task[disabled]{opacity:.45;cursor:not-allowed}
+.task{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);padding:18px;cursor:pointer;font-family:inherit}
+.task:hover{border-color:var(--sapphire);background:var(--sapphire-tint)}
+.task b{display:block;font-size:17px;color:var(--ink);margin-bottom:3px}
+.task span{font-size:13px;color:var(--ink-soft)}
+
+.lrow{padding:12px 16px;border-bottom:1px solid var(--line-soft)}
+.lrow-main{display:grid;gap:8px;align-items:end;grid-template-columns:52px minmax(0,1fr) 98px 110px 110px}
+.lrow-sub{display:grid;gap:8px;align-items:end;grid-template-columns:minmax(0,1fr) 96px;margin-top:9px}
+.frow-main{display:grid;gap:8px;align-items:end;grid-template-columns:132px 108px minmax(0,1fr)}
+.frow-sub{display:grid;gap:8px;align-items:end;grid-template-columns:minmax(0,1fr) 122px 96px;margin-top:9px}
+.lrow-main.cols-3{grid-template-columns:repeat(3,minmax(0,1fr)) 92px}
+.lrow-main.cols-4{grid-template-columns:repeat(4,minmax(0,1fr)) 92px}
+.lrow-main.cols-5{grid-template-columns:repeat(5,minmax(0,1fr)) 92px}
+.lrow-main.cols-6{grid-template-columns:repeat(6,minmax(0,1fr)) 92px}
+@media(max-width:620px){
+  .lrow-main,.frow-main,.frow-sub{grid-template-columns:1fr 1fr}
+  .lrow-main.cols-3,.lrow-main.cols-4,.lrow-main.cols-5,.lrow-main.cols-6{grid-template-columns:1fr 1fr}
+}
+.f-amt.is-short{border-color:var(--short);color:var(--short);background:var(--short-tint)}
+.f-amt.is-over{border-color:var(--over);color:var(--over);background:var(--over-tint)}
+.f-amt:disabled{background:#F4F6F9;color:var(--ink-faint)}
+.x{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink-faint);border-radius:var(--r);
+  height:44px;cursor:pointer;font-size:14px;line-height:1;font-family:inherit}
+.x:hover{border-color:var(--short);color:var(--short);background:var(--short-tint)}
+
+.check{display:flex;gap:11px;align-items:flex-start;padding:13px;border:1px solid var(--line);
+  border-radius:var(--r);background:#FAFBFD;cursor:pointer}
+.check input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--sapphire)}
+.check span{font-size:14px;line-height:1.35;color:var(--ink)}
+.check.warn{border-color:var(--over);background:var(--over-tint)}
+.check.warn input{accent-color:var(--over)}
+.dimmed{opacity:.4;pointer-events:none}
+.prow{border-bottom:1px solid var(--line-soft);padding:14px 16px}
+.pname{font-weight:700;font-size:15px;margin-bottom:2px}
+.pmeta{font-size:12px;color:var(--ink-faint);margin-bottom:10px}
+.flag{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;margin-right:4px;white-space:nowrap}
+.flag-late{background:#FEF3C7;color:#92400E}
+.flag-early{background:#FEE2E2;color:#B23}
+.rowflags{padding:2px 2px 0}.rowflags:empty{display:none}
+.prowflags{margin:-4px 0 8px}
+.shiftblock{padding:8px 0;border-top:1px solid var(--line,#eee)}.shiftblock:first-child{border-top:0}
+.shift-name{font-size:12px;font-weight:700;color:var(--ink,#123);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.shift-set-note{font-size:12px;color:var(--ink-faint,#667);margin:0 0 6px}
+.lr-person{padding:1px 0}
+.lr-pending{background:#FEF3C7;color:#92400E;font-size:12px;font-weight:600;padding:6px 10px;border-radius:8px;margin:0 0 8px}
+.lr-lines{margin-top:2px}
+.lr-line{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--ink-faint,#667);padding:2px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+.lr-line:last-child{border-bottom:0}
+.lr-line span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.dep-ov{position:fixed;inset:0;background:rgba(10,15,25,.55);display:none;align-items:center;justify-content:center;z-index:80;padding:20px}
+.dep-card{background:#fff;border-radius:14px;max-width:420px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.dep-h{font-size:17px;font-weight:800;color:var(--ink,#123);margin-bottom:6px}
+.dep-p{font-size:13px;color:#555;margin:0 0 14px}
+.dep-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.dep-day{display:block;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--sapphire,#1a4d8f);border-radius:10px;background:#F5F8FF;color:var(--sapphire,#1a4d8f);font-weight:700;font-size:14px;cursor:pointer}
+.dep-x{display:block;width:100%;padding:10px;border:0;background:transparent;color:#777;font-size:13px;cursor:pointer;text-decoration:underline}
+/* oversight */
+.ov-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin:0 0 12px}
+.ov-stat{background:#fff;border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:10px 8px;text-align:center}
+.ov-stat b{display:block;font-size:20px;font-weight:800;color:var(--ink,#123)}.ov-stat span{font-size:11px;color:#667}
+.ov-stat.good{border-color:#16a34a}.ov-stat.hot{border-color:#d97706;background:#FFFBEB}.ov-stat.bad{border-color:#dc2626;background:#FEF2F2}.ov-stat.warn{border-color:#d97706}
+.ov-srow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--line,#eee);cursor:pointer}
+.ov-srow:hover{background:#F7F9FC}.ov-nm{font-weight:700;font-size:14px;color:var(--ink,#123)}.ov-nm small{display:block;font-weight:400;font-size:12px;color:#778}
+.ov-ok{color:#16a34a}.ov-stale{color:#b45309;font-weight:600}
+.ov-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.ov-chip.signed{background:#DCFCE7;color:#166534}.ov-chip.ready{background:#DBEAFE;color:#1e40af}.ov-chip.pending{background:#FEF3C7;color:#92400e}.ov-chip.flagged{background:#FEE2E2;color:#b91c1c}.ov-chip.partial{background:#E5E7EB;color:#374151}.ov-chip.notsub{background:#F3F4F6;color:#6b7280}
+.ov-mrow{padding:11px 14px;border-top:1px solid var(--line,#eee);cursor:pointer}.ov-mrow:hover{background:#F7F9FC}
+.ov-mh{display:flex;justify-content:space-between;align-items:center;gap:10px}.ov-mn{font-weight:700;font-size:13px;color:var(--ink,#123)}.ov-caret{color:#9aa;font-weight:400}
+.ov-msum{font-size:12.5px;color:#556;margin-top:3px}
+.ov-exc{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
+.ov-echip{font-size:11px;background:#FEE2E2;color:#b91c1c;padding:2px 8px;border-radius:8px}
+.ov-mrow.has-exc{background:#FFFCFB}
+.ov-detail{margin-top:8px;padding:8px 10px;background:#F7F9FC;border-radius:8px;font-size:12px;color:#445}
+.ov-l{padding:2px 0}.ov-lines .ov-line{display:flex;justify-content:space-between;gap:12px;padding:2px 0;border-bottom:1px solid rgba(0,0,0,.05)}.ov-lines .ov-line:last-child{border-bottom:0}
+.ov-fresh{font-size:11px;color:#778;white-space:nowrap}.ov-fresh.stale{color:#b45309;font-weight:600}.ov-fresh.none{color:#aab}
+.ov-mrow.off{opacity:.6}.ov-blk{background:#F3F4F6;color:#4b5563;padding:8px 12px;border-radius:8px;font-size:13px}
+.ov-warn{background:#FFFBEB;color:#92400e;padding:8px 12px;border-radius:8px;font-size:12.5px;margin-bottom:8px}
+.ov-x{color:#b91c1c}
+.ov-pills{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.ov-pill{border:1px solid var(--line,#d7dce3);background:#fff;color:#374151;border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.ov-pill.on{background:var(--ink,#0f2748);color:#fff;border-color:var(--ink,#0f2748)}
+.ov-pill b{background:#dc2626;color:#fff;border-radius:10px;padding:0 6px;margin-left:4px;font-size:11px}
+.ov-pill.on b{background:#fff;color:#dc2626}
+.ov-regbar{margin:0 0 10px;font-size:13px;color:#475569}
+.ov-regbar select{margin-left:6px;padding:5px 8px;border:1px solid var(--line,#d7dce3);border-radius:8px;font-size:13px}
+.ov-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:#fff}
+.ov-tbl{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+.ov-tbl th,.ov-tbl td{padding:8px 10px;text-align:right;border-bottom:1px solid #eef1f4}
+.ov-tbl th:first-child,.ov-tbl td:first-child{text-align:left}
+.ov-tbl th{background:#F7F9FC;color:#475569;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.02em;position:sticky;top:0}
+.ov-tbl td.stk,.ov-tbl th.stk{position:sticky;left:0;background:#fff;font-weight:700;color:var(--ink,#123)}
+.ov-tbl th.stk{background:#F7F9FC}
+.ov-tbl tbody tr{cursor:pointer}.ov-tbl tr:hover td{background:#F5F8FF}
+.ov-tbl td.cell-bad{color:#b91c1c;font-weight:700;background:#FEF2F2}
+.ov-tbl td.cell-warn{color:#b45309;font-weight:700;background:#FFFBEB}
+.ov-tbl td.muted{color:#9aa3af}
+.ov-tbl tr.ov-tot td{background:#EEF2F7;font-weight:800;color:var(--ink,#123);border-top:2px solid #cbd5e1}
+.ov-change{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0}
+.ov-change-lab{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#9aa3af;font-weight:700}
+.ov-change-lab.post{color:#166534}
+.ov-old{background:#FEE2E2;color:#b91c1c;text-decoration:line-through;padding:2px 8px;border-radius:6px;font-weight:600}
+.ov-arw{color:#64748b;font-weight:800}
+.ov-new{background:#DCFCE7;color:#166534;padding:2px 8px;border-radius:6px;font-weight:800}
+.ov-cashbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;font-size:13px;color:#334155}
+.ov-tbl tr.ov-dayrow td.stk{font-weight:800}
+.ov-tbl tr.ov-sub td{background:#FBFCFE;font-size:11.5px}.ov-tbl tr.ov-sub td.stk{font-weight:400;color:#556;padding-left:20px}
+.ov-daysel{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;font-size:12px;color:#475569;align-items:center}
+.ov-daybtn{border:1px solid var(--line,#d7dce3);background:#fff;color:#374151;border-radius:8px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
+.ov-daybtn.on{background:var(--sapphire,#1a4d8f);color:#fff;border-color:var(--sapphire,#1a4d8f)}
+.ov-allbtn{margin-left:8px;border-color:var(--ink,#0f2748);color:var(--ink,#0f2748)}
+.ov-allbtn.on{background:var(--ink,#0f2748);color:#fff;border-color:var(--ink,#0f2748)}
+.ov-tbl th.ov-grp{text-align:center;background:#eef2f7;border-bottom:1px solid #dde3ea;font-size:10px;color:#5b6675}
+.ov-tbl td.gdiv,.ov-tbl th.gdiv{border-left:2px solid #cfd6df}
+.ov-subhdr{font-size:12px;font-weight:800;color:var(--ink,#0f2748);text-transform:uppercase;letter-spacing:.03em;margin:14px 2px 6px}
+.ov-tbl tr.ov-subtot td{background:#F1F5FA;font-weight:700;color:#334155}
+.ov-tbl tr.grp-start td{border-top:2px solid #dde3ea}
+.ov-dephdr{background:#F7F9FC;border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:10px 12px;margin:0 0 10px}
+.ov-dephdr-t{font-weight:800;color:var(--ink,#0f2748);font-size:14px;margin-bottom:6px}
+.ov-dephdr-g{display:flex;flex-wrap:wrap;gap:16px;font-size:11px;color:#667}
+.ov-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.ov-tile{background:#fff;border:1px solid var(--line,#e5e7eb);border-radius:8px;padding:9px 11px}
+.ov-tile span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:#8a94a3;margin-bottom:3px}
+.ov-tile b{font-size:15px;font-weight:800;color:var(--ink,#0f2748)}
+.ov-dephdr-g span{display:flex;flex-direction:column;text-transform:uppercase;letter-spacing:.02em}.ov-dephdr-g b{color:var(--ink,#123);font-size:14px;text-transform:none;letter-spacing:0;font-weight:800}
+.ov-red{color:#b91c1c}
+.ov-tbl tr.ov-prio td{background:#FFF7F5}.ov-tbl tr.ov-prio td.stk{box-shadow:inset 3px 0 0 #dc2626}
+.ov-priotag{background:#dc2626;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;padding:1px 5px;border-radius:4px;letter-spacing:.03em;margin-right:4px}
+.crit{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:5px 0}
+.crit span{font-size:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{width:40px;height:38px;border:none;border-left:1px solid var(--line);background:var(--surface);
+  font-family:inherit;font-size:14px;color:var(--ink-soft);cursor:pointer}
+.seg button:first-child{border-left:none}
+.seg button[aria-pressed="true"]{background:var(--sapphire);color:#fff;font-weight:700}
+.seg button.low[aria-pressed="true"]{background:var(--short)}
+.pavg{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700}
+@media(max-width:520px){ .crit{grid-template-columns:1fr;gap:4px} .seg{width:100%} .seg button{flex:1;width:auto} }
+
+.recon{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.recon-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 110px;gap:8px;padding:10px 13px;
+  border-bottom:1px solid var(--line-soft);align-items:center;font-size:14px}
+.recon-row:last-child{border-bottom:none}
+.recon-row.head{background:#FAFBFD;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink-soft)}
+.recon-row .n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.recon-row.result{font-weight:600}
+.match-ok{background:var(--ok-tint);color:var(--ok)}
+.match-bad{background:var(--short-tint);color:var(--short)}
+
+.tape{position:sticky;top:0;z-index:40;background:var(--ink);color:#fff;
+  border-bottom:3px solid var(--sapphire)}
+.tape-inner{max-width:760px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.tape-figs{display:flex;gap:16px;flex:1;min-width:0;overflow-x:auto}
+.fig{display:flex;flex-direction:column;line-height:1.2}
+.fig .k{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#93A6BF;white-space:nowrap}
+.fig .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:16px;font-weight:600}
+.v.short{color:#FF9A93}
+.v.over{color:#FFCE7A}
+.tape .btn{background:var(--sapphire);border-color:var(--sapphire);white-space:nowrap}
+.tape .btn-back{background:transparent;border-color:#37506F;color:#fff}
+
+.note{padding:11px 13px;border-radius:var(--r);font-size:14px;margin-top:12px;border:1px solid}
+.note-ok{background:var(--ok-tint);border-color:#B9DBCB;color:var(--ok)}
+.note-bad{background:var(--short-tint);border-color:#EFC6C3;color:var(--short)}
+.note-info{background:var(--sapphire-tint);border-color:#C3D6EC;color:var(--sapphire-dark)}
+.meta{font-size:12px;color:var(--ink-faint);margin-top:10px}
+
+.matrix{width:100%;border-collapse:collapse;font-size:13px}
+.matrix th,.matrix td{border:1px solid var(--line-soft);padding:7px 8px;text-align:left}
+.matrix th{background:#FAFBFD;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.matrix td.c{text-align:center;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700}
+.p-in{background:var(--ok-tint);color:var(--ok)}
+.p-part{background:var(--over-tint);color:var(--over)}
+.p-miss{background:var(--short-tint);color:var(--short)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.num-neg{color:var(--short);font-weight:600}
+.num-pos{color:var(--over);font-weight:600}
+.tabs{display:flex;gap:6px;padding:12px 16px 0;flex-wrap:wrap}
+.tab{padding:9px 14px;border:1px solid var(--line);border-bottom:none;border-radius:var(--r) var(--r) 0 0;
+  background:#FAFBFD;cursor:pointer;font-size:14px;font-weight:600;color:var(--ink-soft);font-family:inherit}
+.tab[aria-selected=true]{background:var(--surface);color:var(--sapphire)}
+@media (prefers-reduced-motion:no-preference){
+  .card{animation:rise .18s ease-out}
+  @keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     CONFIG — the only block you need to edit.
+     ============================================================ -->
+<script>
+const CONFIG = {
+
+  /* 1. Apps Script web app URL (ends in /exec). Paste after deploying Code.gs. */
+  API_URL: "https://script.google.com/macros/s/AKfycbwyjomsOr7Isb_ZhTk2-vtSgIGDFpxVZ1CdTVUNV7pVVJTH-cmtPlU7giwSvg3xdGVhOg/exec",
+
+  /* PREVIEW ONLY — set to true to walk through the form with no backend.
+     It uses this device's date and saves nothing. MUST be false before rollout. */
+  PREVIEW_MODE: false,
+
+  /* 2. Sale events. LEFT BLANK ON PURPOSE — fill in the event name and dates.
+        A sale can run up to 6 days. If an event is shorter, delete the extra
+        lines; if it is longer, add more. Nothing else needs changing. */
+  EVENTS: [
+    { id: "EVENT-01", name: "Sale Event 2026",
+      /* Whole-event budget per store (optional). Key = EXACT store name.
+         Leave {} if head office has not shared per-store allocations. */
+      budgets: {},
+      days: [
+        { day: 1, date: "2026-08-31" },
+        { day: 2, date: "2026-09-01" },
+        { day: 3, date: "2026-09-02" },
+        { day: 4, date: "2026-09-03" },
+        { day: 5, date: "2026-09-04" }
+      ]
+    }
+  ],
+
+  /* 3. Review code — opens the head office screen. Change before rollout,
+        and change REVIEW_CODE in Code.gs to match. */
+  REVIEW_CODE: "REVIEW-0001",                 // Code.gs API token (not a gate password)
+
+  /* 4. Store master — 48 stores from your CASH PICK UP / TILL VARIANCE tabs.
+        code   = permanent key, never change once live
+        access = what the store types. ALL PLACEHOLDERS — replace before rollout. */
+  /* Store identity comes from the server after code check — no codes in this file. */
+
+  /* Pick-up slots. Add a third line here if a day ever needs one. */
+  PICKUP_SEQUENCE: ["First pick-up of the day", "Second pick-up of the day"],
+
+  /* Day-end performance criteria. Edit freely — the form, sheet and export follow.
+     Scored 1 to 5. A score of 1 or 2 forces a written remark. */
+  PERFORMANCE_CRITERIA: {
+    wager: ["Grooming", "Floor presence", "Time keeping", "Customer interaction", "Instruction follow-up"],
+    guard: ["Grooming", "Time keeping", "Activeness on duty", "Post discipline", "Customer courtesy"]
+  },
+
+  /* Event budget categories, in the order they appear on the form.
+     Add or rename here and the form, sheet and export follow. */
+  BUDGET_CATEGORIES: [
+    { key:"food",            label:"Food" },
+    { key:"wagersRetail",    label:"Daily wagers — Retail" },
+    { key:"wagersFragrance", label:"Daily wagers — Fragrance" },
+    { key:"janitorial",      label:"Extra janitorial" },
+    { key:"tentage",         label:"Tentage and chairs" },
+    { key:"valet",           label:"Valet parking" },
+    { key:"water",           label:"Water" }
+  ],
+
+  /* Note denominations offered when logging a fake note. */
+  DENOMINATIONS: [5000, 1000, 500, 100, 50, 20, 10],
+
+  /* Cash-in-transit vendor name, as it should appear on the form. */
+  CIT_VENDOR: "Phoenix",
+
+  /* Business day rolls over at this hour. A day-end filled at 01:30 counts
+     as the previous sale day. Set to 0 to use the calendar date exactly. */
+  BUSINESS_DAY_CUTOFF_HOUR: 6,
+
+  /* A person is only flagged Late/Early if past this many minutes
+     beyond the shift's scheduled start (late) or before its end (early). */
+  SHIFT_GRACE_MIN: 15
+};
+</script>
+
+<!-- ==================== GATE ==================== -->
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <div style="display:inline-flex;align-items:center;gap:7px;background:#E8EFF8;color:#17457F;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-bottom:12px">🏬 Store site</div>
+    <h2>Store daily entry</h2>
+    <p>For store teams during the sale event — cash pick-ups, till variance, deposits, staff and support attendance. Enter your <b>store code</b> to begin.</p>
+    <label for="gateCode">Store code</label>
+    <input type="text" id="gateCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. EMP-0001">
+    <div style="height:14px"></div>
+    <button class="btn btn-block" id="gateBtn">Continue</button>
+    <div id="gateMsg"></div>
+  </div>
+</div>
+
+<!-- ==================== TASK CHOOSER ==================== -->
+<style>
+  #dayHome .dcard{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:13px 14px;margin:0 0 12px}
+  #dayHome .dcard.clk{cursor:pointer} #dayHome .dcard.clk:hover{background:#fafbfc}
+  #dayHome .dcard-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}
+  #dayHome .dcard .dname{font-weight:700;font-size:15px}
+  #dayHome .dchip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+  #dayHome .dchip.today{background:#eafaf0;color:#16a34a}
+  #dayHome .dchip.due{background:#fef3e2;color:#b45309}
+  #dayHome .dchip.future{background:#f3f4f6;color:#6b7280}
+  #dayHome .dcard-foot{margin-top:10px;font-size:12.5px;font-weight:600;color:#2563eb}
+  #dayHome .task-strip{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
+  #dayHome .ts{flex:1 0 auto;min-width:84px;text-align:center;border:1px solid #eef0f3;border-radius:8px;padding:8px 5px;background:#fbfcfd}
+  #dayHome .ts-l{display:flex;align-items:center;justify-content:center;min-height:28px;font-size:11px;color:#6b7280;line-height:1.2}
+  #dayHome .ts-s{display:block;font-size:12px;font-weight:700;margin-top:4px;line-height:1.2}
+  #dayHome .ts-s.done{color:#16a34a} #dayHome .ts-s.pending{color:#8a8f98}
+  #dayHome .ts-s.tomorrow{color:#5f636b} #dayHome .ts-s.overdue{color:#b45309} #dayHome .ts-s.locked{color:#c4c8cf}
+</style>
+<div id="menu" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">🏬 Store entry · sale event compliance</p>
+    <p class="mast-sub" id="menuStore"></p>
+  </div></div>
+  <div class="wrap">
+
+    <div id="itCard"></div>
+
+    <!-- ALL SALE DAYS (home) -->
+    <div id="dayHome"></div>
+
+    <!-- INCIDENT LOG (not tied to a sale day) -->
+    <div class="card" id="incEntryCard"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><b>🚨 Incident log</b><p class="meta" style="margin:2px 0 0">Theft, outage, fight, injury or any other incident — log it any time. Not tied to a sale day.</p></div>
+      <button class="btn" id="incOpenBtn" style="flex:0 0 auto">Open</button>
+    </div></div>
+
+    <!-- ONE DAY'S TASKS -->
+    <div id="dayTasks" class="hidden">
+      <div style="margin:0 0 14px"><button id="toDays" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #d7dbe0;border-radius:10px;padding:11px 16px;font-size:14.5px;font-weight:600;color:#1b1f27;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)"><span style="font-size:18px;line-height:1">‹</span> All sale days</button></div>
+      <div class="card">
+        <div class="card-body">
+          <span class="lab">Business day</span>
+          <div id="dayBox" class="daybox"></div>
+          <p style="margin:10px 0 0"><button class="linkbtn" id="dayFix">This is not the right day</button></p>
+        </div>
+        <div class="card-body hidden" id="dayOverride">
+          <div class="grid2">
+            <div><label class="req" for="mDay">Choose the sale day</label><select id="mDay"></select></div>
+            <div><label class="req" for="dayReason">Reason for not using today</label><input type="text" id="dayReason" placeholder="e.g. filling Day 2 a day late"></div>
+          </div>
+          <p class="meta">The reason is stored with the entry and shown to head office.</p>
+        </div>
+      </div>
+      <div class="pick-task" id="taskList"></div>
+    </div>
+
+    <p class="meta">Signed in as <b id="menuCode"></b>. <button class="linkbtn" id="signOut">Switch store</button></p>
+  </div>
+</div>
+
+<style>
+  .lockrec{border:0.5px solid #d7e4dc;border-radius:10px;padding:11px 12px;margin-bottom:8px;background:#f6faf8}
+  .lockrec .lr-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .lockrec .lr-head b{font-size:14px}
+  .lockrec .lr-tag{font-size:11px;color:#16a34a;font-weight:600;margin-left:6px}
+  .lockbtn{display:inline-flex;align-items:center;gap:6px;border:0.5px solid #cfd5db;background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;font-weight:600;color:#1b1f27;cursor:pointer}
+  .lockbtn:hover{background:#f5f6f8}
+  .lockrec .lr-body{font-size:13px;color:#374151;margin-top:7px}
+  .lockrec .lr-sub{font-size:12px;color:#6b7280;margin-top:4px}
+  .lockrec .lr-x{color:#dc2626;font-weight:500}
+  .lockhead{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#6b7280;margin:0 0 8px}
+  .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  @media(max-width:520px){.grid3{grid-template-columns:1fr 1fr}}
+  #shiftScreen .shiftrow{display:flex;gap:8px;flex-wrap:wrap}
+  #shiftScreen .shiftrow>div{flex:1 1 110px;min-width:0}
+  #perfScreen .crit{display:block;margin:0 0 12px}
+  #perfScreen .crit>span:first-child{display:block;font-size:13px;color:#1b1f27;margin-bottom:6px}
+  #perfScreen .seg{display:flex;width:100%}
+  #perfScreen .seg button{flex:1;width:auto;height:36px;padding:0 4px;font-size:11.5px;line-height:1.1}
+  #perfScreen .perfguide{background:#eef2f9;border:0.5px solid #d6def0;border-radius:10px;padding:11px 13px;font-size:12.7px;color:#33406b;margin:0 0 12px;line-height:1.55}
+  #perfScreen .perfbulk{margin-top:9px}
+  #perfScreen .perfdetail{margin-top:10px;padding-left:8px;border-left:2px solid #e5e7eb}
+  #perfScreen .poverall{margin-top:2px}
+  #pickScreen .card-body,#dayScreen .card-body,#bankScreen .card-body,#shiftScreen .card-body,#perfScreen .card-body,#budgetScreen .card-body{padding-top:10px;padding-bottom:10px}
+  #pickScreen label.req,#dayScreen label.req,#bankScreen label.req,#shiftScreen label.req,#perfScreen label.req,#budgetScreen label.req,
+  #pickScreen label:not(.check),#dayScreen label:not(.check),#bankScreen label:not(.check),#shiftScreen label:not(.check),#budgetScreen label:not(.check),#perfScreen label:not(.check){font-size:11px;font-weight:600;margin-bottom:3px}
+  #pickScreen .card-body>.lab,#dayScreen .card-body>.lab,#bankScreen .card-body>.lab,#shiftScreen .card-body>.lab,#budgetScreen .card-body>.lab{font-size:12px;font-weight:700;color:#1b1f27}
+  #pickScreen input,#pickScreen select,#pickScreen textarea,#dayScreen input,#dayScreen select,#dayScreen textarea,#bankScreen input,#bankScreen select,#bankScreen textarea,#shiftScreen input,#shiftScreen select,#perfScreen input,#perfScreen select,#budgetScreen input,#budgetScreen select,#budgetScreen textarea{padding:8px 9px;font-size:14px}
+  #pickScreen .grid2,#dayScreen .grid2,#bankScreen .grid2,#shiftScreen .grid2,#budgetScreen .grid2{gap:8px}
+</style>
+<!-- ==================== CASH PICK-UP ==================== -->
+<div id="pickScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">Cash pick-up</p>
+    <p class="mast-sub" id="pickHead"></p>
+  </div></div>
+  <div class="tape"><div class="tape-inner">
+    <button class="btn btn-back" id="pBack">Back</button>
+    <div class="tape-figs"></div>
+    <button class="btn" id="pSubmit">Submit pick-up</button>
+  </div></div>
+  <div class="wrap">
+    <div class="card">
+      <div class="card-head"><h3>Pick-up details</h3><span class="hint">One pick-up per submission</span></div>
+      <div class="card-body" id="pStatusWrap"><div id="pStatusBox"></div></div>
+      <div class="card-body hidden" id="pkAllDone" style="color:#6b7280;font-size:13px">Both pick-ups are recorded above. Tap <b>Edit</b> on one to change it.</div>
+      <div id="pkForm">
+      <div class="card-body grid2">
+        <div><label class="req" for="pSeq">Which pick-up is this</label><select id="pSeq"></select></div>
+        <div id="pTimeWrap"><label class="req" for="pTime">Time of pick-up</label><select id="pTime" class="timesel"></select></div>
+      </div>
+      <div class="card-body hidden" id="pVaultWrap">
+        <label class="check warn" for="pVault">
+          <input type="checkbox" id="pVault">
+          <span>Vault not available — this pick-up did not happen</span>
+        </label>
+      </div>
+      <div class="card-body" id="pAckWrap">
+        <label class="check" for="pTwo">
+          <input type="checkbox" id="pTwo">
+          <span>Cash was counted by two people — one sales staff and one manager</span>
+        </label>
+      </div>
+      <div class="card-body" id="pTwoHead">
+        <span class="lab" style="font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink)">People who verified the cash before the handover</span>
+      </div>
+      <div class="card-body grid2" id="pTwoNames">
+        <div><label class="req" for="pStaff">Name of staff</label><input type="text" id="pStaff" autocomplete="off" placeholder="Full name"></div>
+        <div><label class="req" for="pStaffPay">Staff payroll number</label><input type="text" class="num" id="pStaffPay" autocomplete="off" placeholder="Payroll no."></div>
+        <div><label class="req" for="pMgr">Name of manager</label><input type="text" id="pMgr" autocomplete="off" placeholder="Full name"></div>
+        <div><label class="req" for="pMgrPay">Manager payroll number</label><input type="text" class="num" id="pMgrPay" autocomplete="off" placeholder="Payroll no."></div>
+      </div>
+      <div class="card-body">
+        <label for="pNotes">Notes (optional)</label>
+        <input type="text" id="pNotes" placeholder="Anything unusual">
+      </div>
+      </div>
+    </div>
+    <div id="pMsg"></div>
+    <p class="meta" id="pDraft"></p>
+    <p class="meta">Each pick-up is recorded separately. Submitting the same pick-up again for the same day replaces that entry — it does not create a duplicate.</p>
+  </div>
+</div>
+
+<!-- ==================== DAY END ==================== -->
+<div id="dayScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">Day-end till variance</p>
+    <p class="mast-sub" id="dayHead"></p>
+  </div></div>
+
+  <div class="tape"><div class="tape-inner">
+    <button class="btn btn-back" id="dBack">Back</button>
+    <div class="tape-figs">
+      <div class="fig"><span class="k">Tills</span><span class="v" id="tTills">0</span></div>
+      <div class="fig"><span class="k">Shortage</span><span class="v short" id="tShort">0</span></div>
+      <div class="fig"><span class="k">Excess</span><span class="v over" id="tOver">0</span></div>
+      <div class="fig"><span class="k">Net</span><span class="v" id="tNet">0</span></div>
+    </div>
+    <button class="btn" id="dSubmit">Submit</button>
+  </div></div>
+
+  <div class="wrap">
+
+    <div id="dayLocked"></div>
+    <div class="hidden" id="dayFiledNote" style="color:#6b7280;font-size:13px;margin:0 0 10px">This is saved. Tap <b>Edit</b> above to change it.</div>
+    <div id="dayForm">
+      <div class="card hidden" id="dayAmendWrap" style="border-left:4px solid #d97706">
+        <div class="card-body"><label class="req" for="dayAmendReason">Reason for changing this saved money record</label>
+          <input type="text" id="dayAmendReason" placeholder="Why is it being amended? Goes to the cluster manager for approval">
+          <p class="meta">A change to a filed till variance needs cluster manager approval before it is final.</p></div>
+      </div>
+    <div class="card">
+      <div class="card-head"><h3>Till-wise variance</h3><span class="hint">One line per till operated</span></div>
+      <div class="card-body" id="dStatusWrap"><div id="dStatusBox"></div></div>
+      <div class="card-body">
+        <label class="req" for="dTills">How many tills were operational today?</label>
+        <input type="text" class="num" id="dTills" inputmode="numeric" placeholder="0" style="max-width:200px">
+        <p class="meta" id="tillHint">Enter a number and the till lines appear below.</p>
+      </div>
+      <div id="tillRows"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Cash reconciliation</h3><span class="hint">Where the day's cash ended up</span></div>
+      <div class="card-body grid2">
+        <div><label class="req" for="dSys">Total cash in system D365 (PKR)</label><input type="text" class="num" id="dSys" inputmode="numeric" placeholder="0"></div>
+        <div><label class="req" for="dCit"><span id="citLabel">Cash handed over</span> (PKR)</label><input type="text" class="num" id="dCit" inputmode="numeric" placeholder="0"></div>
+        <div><label class="req" for="dStore">Cash available at store (PKR)</label><input type="text" class="num" id="dStore" inputmode="numeric" placeholder="0"></div>
+      </div>
+      <div class="card-body"><div class="recon" id="recon2"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Card reconciliation</h3><span class="hint">Card sales against settlement</span></div>
+      <div class="card-body grid2">
+        <div><label class="req" for="dCardSys">Total card sales in system D365 (PKR)</label><input type="text" class="num" id="dCardSys" inputmode="numeric" placeholder="0"></div>
+        <div><label class="req" for="dCardSet">Total settled on card machines (PKR)</label><input type="text" class="num" id="dCardSet" inputmode="numeric" placeholder="0"></div>
+      </div>
+      <div class="card-body">
+        <label for="dCardRem">Remarks on card difference</label>
+        <input type="text" id="dCardRem" placeholder="Leave blank if there is no difference">
+      </div>
+      <div class="card-body"><div class="recon" id="recon3"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Fake notes</h3><span class="hint">Leave empty if none were received</span></div>
+      <div id="fakeRows"></div>
+      <div class="card-foot" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <button class="btn btn-line btn-sm" id="addFake">+ Add fake note</button>
+        <span id="fakeTotal" class="meta" style="margin:0"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Day totals</h3><span class="hint">Enter both as positive numbers</span></div>
+      <div class="card-body grid2">
+        <div><label class="req" for="dShort">Total cash shortage (PKR)</label><input type="text" class="num" id="dShort" inputmode="numeric" placeholder="0"></div>
+        <div><label class="req" for="dOver">Total cash excess (PKR)</label><input type="text" class="num" id="dOver" inputmode="numeric" placeholder="0"></div>
+      </div>
+      <div class="card-body"><div class="recon" id="recon"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Overnight cash in safe</h3><span class="hint">Applies when the second pick-up did not happen</span></div>
+      <div class="card-body">
+        <label class="req" for="dSecond">Was the second cash pick-up completed today?</label>
+        <select id="dSecond" style="max-width:260px">
+          <option value="">Select</option>
+          <option>Yes</option>
+          <option>No</option>
+        </select>
+        <p class="meta" id="dSecondHint"></p>
+      </div>
+      <div class="card-body hidden" id="dEmailWrap">
+        <label class="check warn" for="dEmail">
+          <input type="checkbox" id="dEmail">
+          <span>Email sent to Finance and Accounts highlighting the cash held in the safe overnight</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Reconciliation sign-off</h3></div>
+      <div class="card-body">
+        <label class="check" for="dRec">
+          <input type="checkbox" id="dRec">
+          <span>Total cash has been reconciled and counted by one staff member and one manager at day end before securing it in safe</span>
+        </label>
+      </div>
+      <div class="card-body grid2">
+        <div><label class="req" for="dStaff">Name of staff</label><input type="text" id="dStaff" autocomplete="off" placeholder="Full name"></div>
+        <div><label class="req" for="dStaffPay">Staff payroll number</label><input type="text" class="num" id="dStaffPay" autocomplete="off" placeholder="Payroll no."></div>
+        <div><label class="req" for="dMgr">Name of manager</label><input type="text" id="dMgr" autocomplete="off" placeholder="Full name"></div>
+        <div><label class="req" for="dMgrPay">Manager payroll number</label><input type="text" class="num" id="dMgrPay" autocomplete="off" placeholder="Payroll no."></div>
+      </div>
+      <div class="card-body">
+        <label for="dNotes">Notes (optional)</label>
+        <textarea id="dNotes" rows="2" placeholder="Anything head office should know"></textarea>
+      </div>
+    </div>
+    </div>
+
+    <div id="dMsg"></div>
+    <p class="meta" id="dDraft"></p>
+    <p class="meta">Submitting again for the same day replaces the earlier day-end entry. Nothing is deleted — every submission stays in the log.</p>
+  </div>
+</div>
+
+<!-- ==================== BANK DEPOSIT ==================== -->
+<div id="bankScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">Cash deposited in bank</p>
+    <p class="mast-sub" id="bankHead"></p>
+  </div></div>
+
+  <div class="tape"><div class="tape-inner">
+    <button class="btn btn-back" id="bBack">Back</button>
+    <div class="tape-figs">
+      <div class="fig"><span class="k">Deposited</span><span class="v" id="tDep">0</span></div>
+      <div class="fig"><span class="k">In system</span><span class="v" id="tSys">0</span></div>
+      <div class="fig"><span class="k">Variance</span><span class="v" id="tVar">0</span></div>
+    </div>
+    <button class="btn" id="bSubmit">Submit</button>
+  </div></div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="card-head"><h3>Which day's cash</h3><span class="hint">Deposit is made the next day</span></div>
+      <div class="card-body" id="bStatusWrap"><div id="bStatusBox"></div></div>
+      <div class="card-body hidden" id="bankFiledNote" style="color:#6b7280;font-size:13px">This is saved. Tap <b>Edit</b> above to change it.</div>
+      <div class="card-body grid2" id="bankDayGrid">
+        <div><label class="req" for="bDay">Cash of sale day</label><select id="bDay"></select></div>
+        <div><label class="req" for="bDate">Deposit made on</label><input type="date" id="bDate">
+          <p class="meta" id="bDateHint"></p></div>
+      </div>
+    </div>
+
+    <div class="card" id="bankAmtCard">
+      <div class="card-head"><h3>Amounts</h3><span class="hint">For the sale day chosen above</span></div>
+      <div class="card-body grid2">
+        <div><label class="req" for="bSys">Total cash in system for that day (PKR)</label><input type="text" class="num" id="bSys" inputmode="numeric" placeholder="0"></div>
+        <div><label class="req" for="bAmt">Total cash deposited in bank (PKR)</label><input type="text" class="num" id="bAmt" inputmode="numeric" placeholder="0"></div>
+        <div><label class="req" for="bBank">Bank name</label><input type="text" id="bBank" placeholder="e.g. MCB, HBL, UBL"></div>
+        <div><label class="req" for="bSlip">Deposit slip number</label><input type="text" id="bSlip" placeholder="Slip / reference number"></div>
+      </div>
+      <div class="card-body"><div class="recon" id="recon4"></div></div>
+      <div class="card-body">
+        <label for="bReason"><span id="bReasonLab">Reason for variance</span></label>
+        <input type="text" id="bReason" placeholder="Leave blank if there is no variance">
+      </div>
+    </div>
+
+    <div class="card" id="bankPeopleCard">
+      <div class="card-head"><h3>Staff who went to the bank for deposit</h3><span class="hint">Everyone who took the cash to the bank</span></div>
+      <div id="bankPeople"></div>
+      <div class="card-foot"><button class="btn btn-line btn-sm" id="addPerson">+ Add person</button></div>
+    </div>
+
+    <div class="card" id="bankFakeCard">
+      <div class="card-head"><h3>Fake notes found during deposit</h3><span class="hint">Denomination only — cannot be tied to a till. Leave empty if none.</span></div>
+      <div id="bankFakeRows"></div>
+      <div class="card-foot"><button class="btn btn-line btn-sm" id="bAddFake">+ Add fake note</button></div>
+    </div>
+
+    <div class="card" id="bankNotesCard">
+      <div class="card-body">
+        <label for="bNotes">Notes (optional)</label>
+        <input type="text" id="bNotes" placeholder="Bank name, slip reference, anything unusual">
+      </div>
+    </div>
+
+    <div id="bMsg"></div>
+    <p class="meta" id="bDraft"></p>
+    <p class="meta">Submitting again for the same sale day replaces the earlier deposit entry.</p>
+  </div>
+</div>
+
+<!-- ============ DAILY WAGERS / SECURITY GUARDS (shared screen) ============ -->
+<style>
+  #supportScreen .sup-row{border:0.5px solid #e5e8ec;border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  #supportScreen .sup-who{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  #supportScreen .sup-who b{font-size:14px}
+  #supportScreen .sup-who small{color:#6b7280;font-size:12px;margin-left:2px}
+  #supportScreen .sup-who input[type=text]{padding:6px 8px;font-size:13.5px;min-width:160px}
+  #supportScreen .sup-auto{font-size:10.5px;background:#e6f4ea;color:#166534;padding:2px 7px;border-radius:6px;font-weight:700}
+  #supportScreen .sup-manual{font-size:10.5px;background:#eef1f4;color:#5f636b;padding:2px 7px;border-radius:6px;font-weight:700}
+  #supportScreen .sup-times{display:flex;gap:8px;flex-wrap:wrap}
+  #supportScreen .sup-times label{flex:1 1 100px;min-width:0;font-size:10.5px;font-weight:600;color:#6b7280;display:flex;flex-direction:column;gap:2px}
+  #supportScreen .sup-times input{padding:6px 8px;font-size:13px}
+  #supportScreen .sup-flags{margin-top:7px}
+  #supportScreen .sup-flag{font-size:11px;background:#fdecec;color:#b42318;padding:2px 8px;border-radius:6px;font-weight:700;margin-right:5px}
+  #supportScreen .sup-x{margin-top:7px;background:none;border:none;color:#b42318;font-size:12px;font-weight:600;cursor:pointer;padding:0}
+  #supportScreen .sup-empty{color:#8a8f98;font-size:13px;margin:2px 0}
+  #supportScreen .sup-fgrp{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin:10px 0 6px}
+  #supportScreen .sup-frow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:0.5px solid #eef1f4;padding:7px 0}
+  #supportScreen .sup-fname{font-weight:600;font-size:14px}#supportScreen .sup-fname small{color:#6b7280;font-weight:400;font-size:12px}
+  #supportScreen .sup-ftime{margin-left:auto;font-size:13px;color:#374151}
+</style>
+<div id="supportScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">Head office attendance</p>
+    <p class="mast-sub" id="supHead"></p>
+  </div></div>
+  <div class="tape"><div class="tape-inner">
+    <button class="btn btn-back" id="supBack">Back</button>
+    <div class="tape-figs"><div class="fig"><span class="k">On site</span><span class="v" id="supCount">0</span></div></div>
+    <button class="btn" id="supSave">Save</button>
+  </div></div>
+  <div class="wrap">
+    <div class="card" id="supFiledCard" style="display:none">
+      <div class="card-head"><h3>Support attendance — saved</h3><button class="lockbtn" id="supEdit">🔒 Edit</button></div>
+      <div class="card-body" id="supFiledBody"></div>
+    </div>
+    <div id="supFormWrap">
+      <div class="card">
+        <div class="card-head"><h3>IT support on site</h3><span class="hint">assigned rep auto-filled</span></div>
+        <div class="card-body"><p class="meta" style="margin:0 0 8px">Set the reporting in/out, then record the actual in/out. On-call reps are not listed (they are not on site).</p><div id="supIT"></div></div>
+        <div class="card-foot"><button class="btn btn-line btn-sm" id="supAddIT">+ Add IT support</button></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Head-office staff on site</h3><span class="hint">add each person like wagers &amp; guards</span></div>
+        <div class="card-body"><div id="supHO"></div></div>
+        <div class="card-foot"><button class="btn btn-line btn-sm" id="supAddHO">+ Add head-office staff</button></div>
+      </div>
+      <p class="meta" id="supMsg"></p>
+    </div>
+  </div>
+</div>
+<style>
+  #incidentScreen .inc-rec{border:0.5px solid #e5e8ec;border-radius:10px;padding:11px 13px;margin-bottom:8px;background:#fff}
+  #incidentScreen .inc-head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+  #incidentScreen .inc-ref{font-size:11px;font-weight:700;color:#17457F;background:#E8EFF8;padding:2px 8px;border-radius:6px}
+  #incidentScreen .inc-type{font-weight:700;font-size:14px}
+  #incidentScreen .inc-when{font-size:11.5px;color:#8a94a3}
+  #incidentScreen .inc-body{font-size:12.5px;color:#3a3f4a;margin-top:6px}
+  #incidentScreen .inc-line{margin:2px 0}
+  #incidentScreen .inc-line b{color:#6b7280;font-weight:600}
+  .inc-prio{font-size:10.5px;font-weight:700;background:#FEF2F2;color:#B3261E;padding:2px 8px;border-radius:6px}
+  .inc-ongo{font-size:10.5px;font-weight:700;background:#FBF3E4;color:#8A5A00;padding:2px 8px;border-radius:6px}
+</style>
+<div id="incidentScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">Incident log</p>
+    <p class="mast-sub" id="incHead"></p>
+  </div></div>
+  <div class="tape"><div class="tape-inner">
+    <button class="btn btn-back" id="incBack">Back</button>
+    <div class="tape-figs"><div class="fig"><span class="k">Logged</span><span class="v" id="incCount">0</span></div></div>
+    <button class="btn" id="incSubmit">Submit incident</button>
+  </div></div>
+  <div class="wrap">
+    <div class="card">
+      <div class="card-head"><h3>Log an incident</h3><span class="hint">fields change with the incident type</span></div>
+      <div class="card-body">
+        <div class="grid2">
+          <div><label class="req" for="incType">Incident type</label><select id="incType"></select></div>
+          <div><label class="req" for="incDate">Incident date</label><input type="date" id="incDate"></div>
+          <div><label class="req" for="incTime">Incident time</label><select id="incTime" class="timesel"></select></div>
+        </div>
+        <div id="incFields"></div>
+        <div class="grid2" style="margin-top:8px">
+          <div><label class="req" for="incAction">Action taken by store manager</label><input type="text" id="incAction" placeholder="What was done on the spot"></div>
+          <div><label class="req" for="incFollow">Follow-up needed from cluster / head office?</label><select id="incFollow"><option value="">Select</option><option>No</option><option>Yes</option></select></div>
+        </div>
+        <div id="incFollowWrap" class="hidden" style="margin-top:8px"><label class="req" for="incFollowNote">What follow-up is needed?</label><input type="text" id="incFollowNote" placeholder="What should cluster / head office do"></div>
+        <div id="incMsg"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Logged incidents</h3><span class="hint">newest first</span></div>
+      <div class="card-body" id="incList"></div>
+    </div>
+  </div>
+</div>
+<div id="shiftScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title" id="shiftTitle"></p>
+    <p class="mast-sub" id="shiftHead"></p>
+  </div></div>
+
+  <div class="tape"><div class="tape-inner">
+    <button class="btn btn-back" id="sBack">Back</button>
+    <div class="tape-figs">
+      <div class="fig"><span class="k" id="kReq">Requested</span><span class="v" id="tReq">0</span></div>
+      <div class="fig"><span class="k">Arrived</span><span class="v" id="tArr">0</span></div>
+      <div class="fig"><span class="k">Lines</span><span class="v" id="tLines">0</span></div>
+    </div>
+    <button class="btn" id="sSubmit">Submit</button>
+  </div></div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="card-head"><h3>Shift summary</h3><span class="hint" id="shiftHint"></span></div>
+      <div class="card-body" id="sStatusWrap"><div id="sStatusBox"></div></div>
+      <div class="card-body hidden" id="shiftFiledNote" style="color:#6b7280;font-size:13px">This is saved. Tap <b>Edit</b> above to change it.</div>
+      <div id="shiftForm1">
+      <div class="card-body"><div class="recon" id="recon5"></div></div>
+      <div class="card-body">
+        <p class="shift-set-note">Set each shift's scheduled start and end. The store manager fixes these and they can differ per store. Late arrival and early going are flagged automatically against them.</p>
+        <div id="shiftBlocks"></div>
+      </div>
+      <div class="card-body">
+        <label for="sReason"><span id="sReasonLab">Reason for shortfall</span></label>
+        <input type="text" id="sReason" placeholder="Leave blank if everyone requested arrived">
+      </div>
+      </div>
+    </div>
+
+    <div id="shiftForm2">
+    <div class="card">
+      <div class="card-head"><h3 id="peopleTitle"></h3><span class="hint" id="peopleHint"></span></div>
+      <div id="shiftRows"></div>
+      <div class="card-foot"><button class="btn btn-line btn-sm" id="addShiftRow">+ Add line</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <label for="sNotes">Notes (optional)</label>
+        <input type="text" id="sNotes" placeholder="Anything head office should know">
+      </div>
+    </div>
+    </div>
+
+    <div id="sMsg"></div>
+    <p class="meta" id="sDraft"></p>
+    <p class="meta">Submitting again for the same day replaces the earlier entry for this section.</p>
+  </div>
+</div>
+
+<!-- ==================== PERFORMANCE REVIEW ==================== -->
+<div id="perfScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">Security guards and daily wagers rating</p>
+    <p class="mast-sub" id="perfHead"></p>
+  </div></div>
+
+  <div class="tape"><div class="tape-inner">
+    <button class="btn btn-back" id="rBack">Back</button>
+    <div class="tape-figs">
+      <div class="fig"><span class="k">People</span><span class="v" id="tPeople">0</span></div>
+      <div class="fig"><span class="k">Rated</span><span class="v" id="tRated">0</span></div>
+      <div class="fig"><span class="k">Average</span><span class="v" id="tAvg">—</span></div>
+    </div>
+    <button class="btn" id="rSubmit">Submit</button>
+  </div></div>
+
+  <div class="wrap">
+    <div id="rStatusBox"></div>
+    <div id="perfBody"></div>
+    <div id="rMsg"></div>
+    <p class="meta" id="rDraft"></p>
+    <p class="meta">Rate each on Poor / Fair / Good / Excellent. A Poor or Fair rating needs a written remark.</p>
+  </div>
+</div>
+
+<!-- ==================== EVENT BUDGET ==================== -->
+<div id="budgetScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">Event budget spend</p>
+    <p class="mast-sub" id="budgetHead"></p>
+  </div></div>
+
+  <div class="tape"><div class="tape-inner">
+    <button class="btn btn-back" id="gBack">Back</button>
+    <div class="tape-figs">
+      <div class="fig"><span class="k">Allocated</span><span class="v" id="tAlloc">—</span></div>
+      <div class="fig"><span class="k">Spent before</span><span class="v" id="tBefore">0</span></div>
+      <div class="fig"><span class="k">Today</span><span class="v" id="tToday">0</span></div>
+      <div class="fig"><span class="k">Remaining</span><span class="v" id="tLeft">—</span></div>
+    </div>
+    <button class="btn" id="gSubmit">Submit</button>
+  </div></div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="card-head"><h3>Budget position</h3><span class="hint">Allocated for the whole event</span></div>
+      <div class="card-body" id="gStatusWrap"><div id="gStatusBox"></div></div>
+      <div class="card-body hidden" id="budgetFiledNote" style="color:#6b7280;font-size:13px">This is saved. Tap <b>Edit</b> above to change it.</div>
+      <div class="card-body" id="budgetReconBody"><div class="recon" id="recon6"></div></div>
+    </div>
+
+    <div class="card hidden" id="budgetAmendWrap" style="border-left:4px solid #d97706">
+      <div class="card-body"><label class="req" for="budgetAmendReason">Reason for changing this saved money record</label>
+        <input type="text" id="budgetAmendReason" placeholder="Why is it being amended? Goes to the cluster manager for approval">
+        <p class="meta">A change to a filed budget spend needs cluster manager approval before it is final.</p></div>
+    </div>
+    <div class="card" id="budgetSpendCard">
+      <div class="card-head"><h3>Spent today</h3><span class="hint">Leave a line at 0 if nothing was spent</span></div>
+      <div class="card-body grid3" id="budgetFields"></div>
+      <div class="card-body">
+        <label for="gNotes">Notes (optional)</label>
+        <input type="text" id="gNotes" placeholder="Anything head office should know">
+      </div>
+    </div>
+
+    <div class="card hidden" id="gOverWrap">
+      <div class="card-head"><h3>Overspend</h3></div>
+      <div class="card-body">
+        <label class="req" for="gOverReason">Reason for going over the allocated budget</label>
+        <input type="text" id="gOverReason" placeholder="Explain the overspend">
+      </div>
+    </div>
+
+    <div id="gMsg"></div>
+    <p class="meta" id="gDraft"></p>
+    <p class="meta">Submitting again for the same day replaces that day's spend. Earlier days are untouched, so the event total always adds up.</p>
+  </div>
+</div>
+
+
+<script>
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+const fmt = n => (n<0?"-":"") + Math.abs(Math.round(n)).toLocaleString("en-PK");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num = v => { const n = Number(String(v==null?"":v).replace(/,/g,"").trim()); return isFinite(n) ? n : NaN; };
+function note(el, text, kind){ el.innerHTML = '<div class="note note-'+kind+'">'+esc(text)+'</div>'; }
+function show(id){ ["gate","menu","pickScreen","dayScreen","bankScreen","shiftScreen","perfScreen","budgetScreen","supportScreen","incidentScreen"].forEach(x => $(x).classList.toggle("hidden", x!==id)); window.scrollTo(0,0); }
+
+const IT_REPS = {
+  "Allama Iqbal Town, Lahore":{n:"Amir Sohail",t:"SRL",c:"0300-8064514",m:"On Call"},
+  "Ferozwatwan FOL, Sheikhpura":{n:"Amjad Islam",t:"STML",c:"0300-9418569",m:"On Call"},
+  "Avenue Plaza, Bahawalpur":{n:"Amir Sohail",t:"SRL",c:"0300-806514",m:"On Call"},
+  "DMC, Karachi":{n:"Sauman Saeed",t:"Vendor (Mepcon)",c:"0336-8965729",m:"Physical"},
+  "Blue Area, Swat":{n:"Ahtisham Hussain",t:"SRL",c:"0323-0042374",m:"On Call"},
+  "Centaurus Mall 2, Islamabad":{n:"Taha Shahbaz",t:"Vendor (Mepcon)",c:"0314-1897712",m:"Physical"},
+  "Centaurus Mall, Islamabad":{n:"Taha Shahbaz",t:"Vendor (Mepcon)",c:"0314-1897712",m:"Physical"},
+  "College Road, Sahiwal":{n:"Shehroz Tanveer",t:"Vendor (SP)",c:"0301-4099401",m:"Physical"},
+  "Lucky One Mall, Karachi":{n:"Asghar Ali",t:"Vendor (Mepcon)",c:"0328-3459558",m:"Physical"},
+  "Bahadurabad Store":{n:"Izhan Sheikh",t:"Vendor (SP)",c:"0312-2303579",m:"Physical"},
+  "DMTR, Karachi":{n:"Vendor (SP)",t:"Vendor",c:"",m:"On Call"},
+  "Dolmen Mall Lahore":{n:"Amir Sohail",t:"SRL",c:"0300-8064514",m:"Physical"},
+  "Dolphin Chowk, Mirpur":{n:"Meboob Ali",t:"D365",c:"0306-0015505",m:"On Call"},
+  "Emporium Mall, Lahore":{n:"Miss Minahil",t:"D365",c:"0323-3532382",m:"On Call"},
+  "F-10, Islamabad":{n:"Shah e Ajam",t:"SRL",c:"0344-9996824",m:"Physical"},
+  "UOL FOL, Lahore":{n:"Ahad Mohyuddin",t:"SRL",c:"0313-4777369",m:"Physical"},
+  "Giga Mall WTC, Rawalpindi":{n:"Umer",t:"Vendor (Mepcon)",c:"0326-9764570",m:"Physical"},
+  "Gujranwala Rahwali Store":{n:"Zameel Ahmed",t:"SRL",c:"0321-1772612",m:"On Call"},
+  "Gulberg II, Lahore":{n:"Numan Khan",t:"STML",c:"0326-4779707",m:"Physical"},
+  "Gulgasht Colony, Multan":{n:"Mateen",t:"Vendor (Mepcon)",c:"0321-9410800",m:"Physical"},
+  "Atrium Mall Sadar":{n:"Vendor (Mepcon)",t:"Vendor",c:"",m:"On Call"},
+  "Autobahn Road, Hyderabad":{n:"Hasnat Haider",t:"SRL",c:"0309-8384305",m:"Physical"},
+  "Jaranwala Road, Faisalabad":{n:"Rehan Javed",t:"STML",c:"0325-2464003",m:"Physical"},
+  "Jhangi Chowk, Abbottabad":{n:"Ahtisham Hussain",t:"SRL",c:"0323-0042374",m:"On Call"},
+  "Kutchery Road, Gujrat":{n:"Ahmad",t:"Vendor (Mepcon)",c:"0300-7993846",m:"Physical"},
+  "Lake City Mall, Lahore":{n:"Numan Khan",t:"STML",c:"0326-4779707",m:"On Call"},
+  "Layalpur Galleria, Faisalabad":{n:"Rehan Javed",t:"STML",c:"0325-2464003",m:"On Call"},
+  "Packages Mall, Lahore":{n:"Fahad Awan",t:"SRL",c:"0316-7334694",m:"Physical"},
+  "Pindi Saddar, Rawalpindi":{n:"Vendor (Mepcon)",t:"Vendor",c:"",m:"On Call"},
+  "PWD Islamabad Store":{n:"Shah e Ajam",t:"SRL",c:"0344-9996824",m:"On Call"},
+  "Rahim Yar Khan Store":{n:"Tahir Mahmood",t:"Vendor (Mepcon)",c:"0300-6745998",m:"Physical"},
+  "Safa Gold Mall, Islamabad":{n:"Vendor (Mepcon)",t:"Vendor",c:"",m:"On Call"},
+  "Sargodha Road, Sheikhpura":{n:"Amjad Islam",t:"STML",c:"0300-9418569",m:"Physical"},
+  "Sargodha Store":{n:"Bilal Murtaza",t:"Vendor (SP)",c:"0322-7166507",m:"Physical"},
+  "Satellite Town, Gujranwala":{n:"Muhammad Arslan",t:"Vendor (SP)",c:"0319-4014746",m:"Physical"},
+  "Square One Mall, Karachi":{n:"Hasnat Haider",t:"SRL",c:"0309-8384305",m:"On Call"},
+  "S-Town, Rawalpindi":{n:"Shah e Ajam",t:"SRL",c:"0344-9996824",m:"On Call"},
+  "University Road, Peshawar":{n:"Muhammad Badar",t:"Vendor (SP)",c:"0322-8406080",m:"Physical"},
+  "V-Mall, Sialkot":{n:"Nouman Fayyaz",t:"Vendor (SP)",c:"0324-4634126",m:"Physical"},
+  "Wapda Town Lahore":{n:"Miss Minahil",t:"D365",c:"0323-3532382",m:"On Call"},
+  "Y-Block DHA, Lahore":{n:"Fahad Awan",t:"SRL",c:"0316-7334694",m:"On Call"},
+  "Mall of Pindi Saddar":{n:"Meboob Ali",t:"D365",c:"0306-0015505",m:"On Call"},
+  "King Mall Gujranwala":{n:"Zameel Ahmed",t:"SRL",c:"0321-1772612",m:"On Call"},
+  "Hyderi Bazar Largesse, Karachi":{n:"Muhammad Iftikhar",t:"Vendor (Mepcon)",c:"0306-7121575",m:"Physical"},
+  "Jail Road, Mandi Bahauddin-02":{n:"Shah e Ajam",t:"SRL",c:"0344-9996824",m:"On Call"},
+  "Giga Boutique":{n:"Shah e Ajam",t:"SRL",c:"0344-9996824",m:"On Call"},
+  "Bahria Town Lahore":{n:"Amir Sohail",t:"SRL",c:"0300-8064514",m:"On Call"}
+};
+const IT_DAYS = "2 days · 01 Sep – 02 Sep 2026";
+
+function itInitials(nm){ const w=(nm||"").replace(/\(.*?\)/g,"").trim().split(/\s+/).filter(Boolean); if(!w.length) return "IT"; return ((w[0][0]||"")+(w.length>1?w[w.length-1][0]:"")).toUpperCase(); }
+function itRepInner(name){
+  const r=IT_REPS[name];
+  if(!r) return '<div style="font-size:13px;color:#6b7280">No IT representative assigned for this store.</div>';
+  const modeBg = r.m==="Physical" ? "#e6f4ea" : "#fdf1dc", modeFg = r.m==="Physical" ? "#166534" : "#8a5a00";
+  const phone = r.c ? '<span style="display:inline-flex;align-items:center;gap:5px;font-size:13.5px;color:#374151"><span style="color:#9aa2ad">☎</span><a href="tel:'+esc(r.c)+'" style="color:#185fa5;font-weight:600;text-decoration:none">'+esc(r.c)+'</a></span>' : '';
+  return ''
+    +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+    +  '<div style="width:40px;height:40px;border-radius:50%;background:#e6f1fb;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;color:#185fa5;flex:0 0 auto">'+esc(itInitials(r.n))+'</div>'
+    +  '<div style="min-width:150px"><div style="font-weight:700;font-size:15px;color:#1b1f27;line-height:1.2">'+esc(r.n)+'</div>'
+    +  '<div style="font-size:12px;color:#6b7280">IT Representative · '+esc(r.t)+'</div></div>'
+    +  '<div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end">'
+    +    phone
+    +    '<span style="font-size:12px;background:'+modeBg+';color:'+modeFg+';padding:3px 10px;border-radius:8px;font-weight:600">'+esc(r.m)+'</span>'
+    +    '<span style="font-size:13px;color:#374151">'+esc(IT_DAYS)+'</span>'
+    +  '</div>'
+    +'</div>';
+}
+function renderITCard(){
+  const el=$("itCard"); if(!el) return;
+  el.innerHTML='<div class="card"><div class="card-head"><h3 style="display:flex;align-items:center;gap:7px"><span style="font-size:17px">🎧</span> Your IT support</h3></div><div class="card-body">'+itRepInner(STORE.name)+'</div></div>';
+}
+function itRepCard(name){
+  return '<div class="card"><div class="card-head"><h3 style="display:flex;align-items:center;gap:7px"><span style="font-size:16px">🎧</span> IT support for this store</h3></div><div class="card-body">'+itRepInner(name)+'</div></div>';
+}
+
+
+/* ===== Support attendance (IT + HO) — per store, per day ===== */
+const HO_STAFF = {};   /* store name -> { "1":[{name,dept,contact}], "2":[...] }  — filled from the HO Assignment list */
+let SUP = { it:[], ho:[] };
+function supFiled(){ const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]; return sd && sd.support; }
+function supSeed(){
+  const f=supFiled();
+  if(f){ SUP={ it:(f.it||[]).map(r=>Object.assign({},r)), ho:(f.ho||[]).map(r=>Object.assign({},r)) }; return; }
+  SUP={ it:[], ho:[] };
+  const r=IT_REPS[STORE.name];
+  if(r && r.m==="Physical") SUP.it.push({name:r.n,team:r.t,contact:r.c||"",reqIn:"",reqOut:"",actIn:"",actOut:"",present:true,source:"auto"});
+  const ho=(HO_STAFF[STORE.name]||{})[String(DAY.day)]||[];
+  ho.forEach(p=>SUP.ho.push({name:p.name,dept:p.dept||"Head office",contact:p.contact||"",reqIn:p.reqIn||"",reqOut:p.reqOut||"",actIn:"",actOut:"",present:true,source:"auto"}));
+}
+function supMin(t){ if(!t) return null; const p=String(t).split(":"); return (+p[0])*60+(+p[1]); }
+function supFlags(r){
+  const out=[], g=15, ri=supMin(r.reqIn),ai=supMin(r.actIn),ro=supMin(r.reqOut),ao=supMin(r.actOut);
+  if(ri!=null&&ai!=null&&ai>ri+g) out.push("Late in");
+  if(ro!=null&&ao!=null&&ao<ro-g) out.push("Early out");
+  return out;
+}
+function supFlagHTML(r){ const f=supFlags(r); return f.length? '<div class="sup-flags">'+f.map(x=>'<span class="sup-flag">⚑ '+x+'</span>').join("")+'</div>':''; }
+function supTimeOpts(sel){ return timeOpts().replace('value="'+sel+'"','value="'+sel+'" selected'); }
+function supRow(group,i){
+  const r=SUP[group][i];
+  const sub = group==="it" ? (r.team||"IT") : (r.dept||"Head office");
+  const tag = r.source==="auto" ? '<span class="sup-auto">auto</span>' : '<span class="sup-manual">added by store</span>';
+  const nameCell = r.source==="auto" ? '<b>'+esc(r.name)+'</b><small>'+esc(sub)+'</small>'
+    : '<input type="text" placeholder="Employee name" value="'+esc(r.name)+'" oninput="supSet(\''+group+'\','+i+',\'name\',this.value)"><small>'+esc(sub)+'</small>';
+  const contactCell = r.source==="auto" && r.contact ? '<small style="margin-left:6px">☎ '+esc(r.contact)+'</small>'
+    : '<input type="text" inputmode="tel" placeholder="Contact number" value="'+esc(r.contact||"")+'" oninput="supSet(\''+group+'\','+i+',\'contact\',this.value)" style="min-width:140px">';
+  return '<div class="sup-row">'
+    +'<div class="sup-who">'+tag+' '+nameCell+' '+contactCell+'</div>'
+    +'<div class="sup-times">'
+    +'<label>Scheduled in<select class="timesel" onchange="supSet(\''+group+'\','+i+',\'reqIn\',this.value)">'+supTimeOpts(r.reqIn)+'</select></label>'
+    +'<label>Scheduled out<select class="timesel" onchange="supSet(\''+group+'\','+i+',\'reqOut\',this.value)">'+supTimeOpts(r.reqOut)+'</select></label>'
+    +'<label>Actual in<select class="timesel" onchange="supSet(\''+group+'\','+i+',\'actIn\',this.value)">'+supTimeOpts(r.actIn)+'</select></label>'
+    +'<label>Actual out<select class="timesel" onchange="supSet(\''+group+'\','+i+',\'actOut\',this.value)">'+supTimeOpts(r.actOut)+'</select></label>'
+    +'</div>' 
+    + supFlagHTML(r)
+    + (r.source!=="auto" ? '<button class="sup-x" onclick="supDel(\''+group+'\','+i+')">remove</button>' : '')
+    +'</div>';
+}
+function supSet(g,i,k,v){ SUP[g][i][k]=v; if(k!=="name"&&k!=="contact") supRender(); else { $("supCount").textContent=supOnsite(); } }
+function supDel(g,i){ SUP[g].splice(i,1); supRender(); }
+function supOnsite(){ return SUP.it.concat(SUP.ho).filter(r=>r.present!==false).length; }
+function supRender(){
+  $("supIT").innerHTML = SUP.it.length ? SUP.it.map((_,i)=>supRow("it",i)).join("") : '<p class="sup-empty">No physical IT support assigned for this day.</p>';
+  $("supHO").innerHTML = SUP.ho.length ? SUP.ho.map((_,i)=>supRow("ho",i)).join("") : '<p class="sup-empty">No head-office staff pre-assigned for this day. Use “Add HO staff” if someone is on site.</p>';
+  $("supCount").textContent = supOnsite();
+}
+function supRenderFiled(){
+  const f=supFiled();
+  const line=(r,grp)=>{ const sub=grp==="IT"?(r.team||"IT"):(r.dept||"Head office");
+    return '<div class="sup-frow"><span class="sup-fname">'+esc(r.name)+' <small>'+esc(grp)+' · '+esc(sub)+(r.contact?' · ☎ '+esc(r.contact):'')+'</small></span>'
+      +'<span class="sup-ftime">'+(r.actIn?esc(fmt12(r.actIn)):"—")+' → '+(r.actOut?esc(fmt12(r.actOut)):"—")+'</span>'+supFlagHTML(r)+'</div>'; };
+  $("supFiledBody").innerHTML =
+    '<div class="sup-fgrp">IT support</div>'+ ((f.it&&f.it.length)? f.it.map(r=>line(r,"IT")).join(""):'<p class="sup-empty">None</p>')
+    +'<div class="sup-fgrp">Head office</div>'+ ((f.ho&&f.ho.length)? f.ho.map(r=>line(r,"HO")).join(""):'<p class="sup-empty">None</p>');
+}
+async function startSupport(){
+  /* live: pull the day's saved attendance so re-login shows the filed record */
+  if(!CONFIG.PREVIEW_MODE && !supFiled()){
+    try{
+      const url=CONFIG.API_URL+"?action=status&store="+encodeURIComponent(STORE.code)
+        +"&event="+encodeURIComponent(DAY.event)+"&day="+encodeURIComponent(DAY.day)
+        +"&code="+encodeURIComponent(ACCESS_CODE);
+      const o=await (await fetch(url)).json();
+      if(o.ok && o.support){
+        STORE_DATA[STORE.code]=STORE_DATA[STORE.code]||{};
+        STORE_DATA[STORE.code][String(DAY.day)]=STORE_DATA[STORE.code][String(DAY.day)]||{};
+        STORE_DATA[STORE.code][String(DAY.day)].support=o.support;
+      }
+    }catch(e){}
+  }
+  supSeed();
+  $("supHead").textContent = STORE.name + "  ·  Day " + DAY.day + (DAY.date? "  —  "+DAY.date : "");
+  const filed=supFiled();
+  $("supFiledCard").style.display = filed ? "" : "none";
+  $("supFormWrap").style.display = filed ? "none" : "";
+  if(filed) supRenderFiled(); else supRender();
+  $("supBack").onclick = ()=> show("menu");
+  $("supAddHO").onclick = ()=>{ SUP.ho.push({name:"",dept:"Head office",contact:"",reqIn:"",reqOut:"",actIn:"",actOut:"",present:true,source:"store"}); supRender(); };
+  $("supAddIT").onclick = ()=>{ SUP.it.push({name:"",team:"IT",contact:"",reqIn:"",reqOut:"",actIn:"",actOut:"",present:true,source:"store"}); supRender(); };
+  $("supEdit").onclick = ()=>{ $("supFiledCard").style.display="none"; $("supFormWrap").style.display=""; supRender(); };
+  $("supSave").onclick = supSave;
+  show("supportScreen");
+}
+async function supSave(){
+  if(SUP.it.concat(SUP.ho).some(r=>!r.name || !r.name.trim())){ note($("supMsg"),"Every person needs a name. Fill it in or remove the empty row.","bad"); return; }
+  const rec = { store:STORE.code, storeName:STORE.name, region:STORE.region,
+    event:DAY.event, day:String(DAY.day),
+    it:SUP.it.map(r=>Object.assign({},r)), ho:SUP.ho.map(r=>Object.assign({},r)),
+    filedAt:(typeof SERVER!=="undefined"&&SERVER.date)||"", enteredBy:(SUP.it[0]||SUP.ho[0]||{}).name||"" };
+  await send($("supSave"), $("supMsg"), { action:"support", payload:rec }, function(){
+    STORE_DATA[STORE.code]=STORE_DATA[STORE.code]||{};
+    STORE_DATA[STORE.code][String(DAY.day)]=STORE_DATA[STORE.code][String(DAY.day)]||{};
+    STORE_DATA[STORE.code][String(DAY.day)].support = rec;
+    startSupport();
+    if(typeof renderTasks==="function") renderTasks();
+  });
+}
+
+
+/* ===== Incident log — not tied to a sale day; fields depend on incident type ===== */
+const INC_TYPES=[
+ {id:"theft",lab:"Theft",prio:true,f:[
+   {id:"custName",lab:"Customer who lost the items",req:1},
+   {id:"custContact",lab:"Customer contact number",req:1,tel:1},
+   {id:"items",lab:"Item details",req:1,ph:"What was stolen / lost"},
+   {id:"dealingMgr",lab:"Dealing manager name",req:1},
+   {id:"entryTime",lab:"Store entry time",time:1},
+   {id:"reportTime",lab:"Incident report time",time:1}]},
+ {id:"lost",lab:"Lost & found",f:[
+   {id:"foundBy",lab:"Who found it",req:1},
+   {id:"handedTo",lab:"Handed over to",req:1},
+   {id:"items",lab:"Details of items found",req:1}]},
+ {id:"fight",lab:"Fight",prio:true,f:[
+   {id:"summary",lab:"Brief summary of what happened",req:1},
+   {id:"where",lab:"Where it happened",req:1},
+   {id:"involved",lab:"Who was involved",req:1},
+   {id:"outcome",lab:"Outcome",req:1}]},
+ {id:"power",lab:"Electricity outage",out:true},
+ {id:"gen",lab:"Generator out of service",out:true},
+ {id:"lift",lab:"Lift out of service",out:true},
+ {id:"cctv",lab:"CCTV / security system fault",out:true},
+ {id:"diesel",lab:"Diesel issue",f:[
+   {id:"details",lab:"Details of the issue",req:1},
+   {id:"reportedHO",lab:"Reported critically to head office?",yn:1,req:1}]},
+ {id:"charge",lab:"Charge extra",f:[
+   {id:"custName",lab:"Customer name",req:1},
+   {id:"custContact",lab:"Customer contact number",req:1,tel:1},
+   {id:"details",lab:"Receipt / amount details",req:1},
+   {id:"dealingMgr",lab:"Dealing manager name",req:1}]},
+ {id:"injury",lab:"Customer injury / accident",prio:true,f:[
+   {id:"summary",lab:"Brief summary of what happened",req:1},
+   {id:"person",lab:"Person injured",req:1},
+   {id:"reportedHO",lab:"Reported critically to head office?",yn:1,req:1}]},
+ {id:"other",lab:"Any other incident",f:[
+   {id:"dealingMgr",lab:"Dealing manager name",req:1},
+   {id:"custName",lab:"Customer name (if required)"},
+   {id:"details",lab:"Details of the incident",req:1}]}
+];
+const INC_OUT_FIELDS=[
+ {id:"from",lab:"Out of service from",time:1,req:1},
+ {id:"till",lab:"Back on at (blank = still ongoing)",time:1},
+ {id:"reportedHO",lab:"Reported critically to head office?",yn:1,req:1}];
+function incFieldsFor(t){ return t.out?INC_OUT_FIELDS:(t.f||[]); }
+function incStoreList(){ STORE_DATA[STORE.code]=STORE_DATA[STORE.code]||{}; return STORE_DATA[STORE.code]._incidents=STORE_DATA[STORE.code]._incidents||[]; }
+function incFieldHTML(fd){
+  const id="incF_"+fd.id; let inp;
+  if(fd.time) inp='<select id="'+id+'" class="timesel">'+timeOpts()+'</select>';
+  else if(fd.yn) inp='<select id="'+id+'"><option value="">Select</option><option>Yes</option><option>No</option></select>';
+  else inp='<input type="text" id="'+id+'"'+(fd.tel?' inputmode="tel"':'')+(fd.ph?' placeholder="'+esc(fd.ph)+'"':'')+'>';
+  return '<div><label'+(fd.req?' class="req"':'')+' for="'+id+'">'+esc(fd.lab)+'</label>'+inp+'</div>';
+}
+function incRenderFields(){
+  const t=INC_TYPES.find(x=>x.id===$("incType").value);
+  $("incFields").innerHTML = t? '<div class="grid2" style="margin-top:8px">'+incFieldsFor(t).map(incFieldHTML).join("")+'</div>' : "";
+}
+function incRecHTML(r){
+  const t=INC_TYPES.find(x=>x.id===r.type)||{lab:r.typeLabel||r.type};
+  const ongoing=t.out && r.fields && r.fields.from && !r.fields.till;
+  const lines=Object.entries(r.fields||{}).filter(function(e){return e[1];}).map(function(e){
+    const fd=incFieldsFor(t).find(function(x){return x.id===e[0];})||{lab:e[0]};
+    return '<div class="inc-line"><b>'+esc(fd.lab)+':</b> '+esc(fd.time?fmt12(e[1]):e[1])+'</div>'; }).join("");
+  return '<div class="inc-rec"><div class="inc-head"><span><span class="inc-ref">'+esc(r.ref)+'</span> <span class="inc-type">'+esc(t.lab)+'</span> '
+    +(t.prio?'<span class="inc-prio">priority</span> ':'')+(ongoing?'<span class="inc-ongo">ongoing</span>':'')
+    +'</span><span class="inc-when">'+esc(r.date)+' · '+esc(fmt12(r.time))+'</span></div>'
+    +'<div class="inc-body">'+lines
+    +'<div class="inc-line"><b>Action taken:</b> '+esc(r.action)+'</div>'
+    +'<div class="inc-line"><b>Follow-up:</b> '+(r.follow==="Yes"?esc(r.followNote||"Yes"):"Not needed")+'</div>'
+    +'</div></div>';
+}
+function incRenderList(){
+  const list=incStoreList().slice().reverse();
+  $("incList").innerHTML=list.length?list.map(incRecHTML).join(""):'<p class="meta" style="margin:0">No incidents logged yet.</p>';
+  $("incCount").textContent=incStoreList().length;
+}
+async function startIncident(){
+  $("incHead").textContent=STORE.name+(CONFIG.PREVIEW_MODE?"  ·  PREVIEW MODE, NOTHING IS SAVED":"");
+  $("incType").innerHTML='<option value="">Select the incident type</option>'+INC_TYPES.map(t=>'<option value="'+t.id+'">'+esc(t.lab)+'</option>').join("");
+  $("incTime").innerHTML=timeOpts();
+  $("incDate").value=SERVER.date||"";
+  $("incType").onchange=incRenderFields;
+  $("incFollow").onchange=function(){ $("incFollowWrap").classList.toggle("hidden", $("incFollow").value!=="Yes"); };
+  $("incBack").onclick=function(){ show("menu"); };
+  $("incSubmit").onclick=incSave;
+  $("incFields").innerHTML=""; $("incAction").value=""; $("incFollow").value="";
+  $("incFollowWrap").classList.add("hidden"); $("incFollowNote").value=""; $("incMsg").innerHTML="";
+  if(!CONFIG.PREVIEW_MODE){
+    try{
+      const o=await (await fetch(CONFIG.API_URL+"?action=incidents&code="+encodeURIComponent(ACCESS_CODE))).json();
+      if(o.ok){ STORE_DATA[STORE.code]=STORE_DATA[STORE.code]||{};
+        STORE_DATA[STORE.code]._incidents=(o.incidents||[]).map(function(x){ return x.data||{}; }); }
+    }catch(e){}
+  }
+  incRenderList();
+  show("incidentScreen");
+}
+async function incSave(){
+  const t=INC_TYPES.find(x=>x.id===$("incType").value);
+  if(!t){ note($("incMsg"),"Choose the incident type.","bad"); return; }
+  if(!$("incDate").value){ note($("incMsg"),"Pick the incident date.","bad"); return; }
+  if(!$("incTime").value){ note($("incMsg"),"Pick the incident time.","bad"); return; }
+  const fields={};
+  for(const fd of incFieldsFor(t)){
+    const el=$("incF_"+fd.id); const v=el?el.value.trim():"";
+    if(fd.req && !v){ note($("incMsg"),'Fill in "'+fd.lab+'".',"bad"); return; }
+    if(v) fields[fd.id]=v;
+  }
+  if(!$("incAction").value.trim()){ note($("incMsg"),"Enter the action taken by the store manager.","bad"); return; }
+  if(!$("incFollow").value){ note($("incMsg"),"Say whether cluster / head office follow-up is needed.","bad"); return; }
+  if($("incFollow").value==="Yes" && !$("incFollowNote").value.trim()){ note($("incMsg"),"Describe the follow-up needed.","bad"); return; }
+  const ref="INC-"+String(incStoreList().length+1).padStart(3,"0");
+  const p={ store:STORE.code, storeName:STORE.name, region:STORE.region, event:(typeof DAY!=="undefined"&&DAY.event)||"",
+    ref:ref, type:t.id, typeLabel:t.lab, date:$("incDate").value, time:$("incTime").value,
+    fields:fields, action:$("incAction").value.trim(), follow:$("incFollow").value, followNote:$("incFollowNote").value.trim(),
+    loggedAt:(SERVER.date||"")+" "+(SERVER.time||"") };
+  await send($("incSubmit"), $("incMsg"), { action:"incident", payload:p }, function(out){
+    if(out && out.ref) p.ref = out.ref;   // server-issued reference wins
+    incStoreList().push(p);
+    $("incType").value=""; incRenderFields(); $("incAction").value=""; $("incFollow").value="";
+    $("incFollowNote").value=""; $("incFollowWrap").classList.add("hidden");
+    incRenderList();
+  });
+}
+
+let STORE = null;
+let RAW = { till:[], pick:[], day:[], fake:[], bank:[], bankPeople:[], shift:[], shiftPeople:[], budget:[], performance:[] };
+
+/* ================= gate ================= */
+$("gateBtn").onclick = openGate;
+$("gateCode").addEventListener("keydown", e => { if(e.key==="Enter") openGate(); });
+
+let ACCESS_CODE = "";
+async function openGate(){
+  const v = $("gateCode").value.trim().toUpperCase();
+  if(!v){ note($("gateMsg"),"Enter your store code to continue.","bad"); return; }
+  if(!CONFIG.API_URL || /PASTE_YOUR/.test(CONFIG.API_URL)){
+    note($("gateMsg"),"This site is not connected to head office yet. The backend URL has not been set.","bad"); return; }
+  note($("gateMsg"),"Checking your code…","info");
+  try{
+    const res = await fetch(CONFIG.API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({action:"auth",code:v})});
+    const o = await res.json();
+    if(!o.ok){ note($("gateMsg"),o.error||"That code is not recognised. Check with head office.","bad"); return; }
+    if(o.role!=="store"){ note($("gateMsg"),"That is an oversight code. This site is for store teams — use the oversight site instead.","bad"); return; }
+    ACCESS_CODE = v;
+    STORE = { code:o.store.name, name:o.store.name, region:o.store.mgr, access:"" };
+    await startMenu();
+  }catch(e){ note($("gateMsg"),"No connection. Check the internet and try again.","bad"); }
+}
+
+/* ============ business day, catch-up mode and the day checklist ============ */
+/* The date comes from the server, never from the phone. A wrong device clock
+   cannot move a store onto the wrong day or raise a false mismatch flag. */
+let DAY = { event:"", eventName:"", day:null, date:"", source:"auto", reason:"", ready:false };
+let SERVER = { date:"", time:"", cutoff:6, loaded:false };
+let TASKS = null;
+
+function allDays(){
+  const list = [];
+  CONFIG.EVENTS.forEach(e => (e.days||[]).forEach(d =>
+    list.push({ event:e.id, eventName:e.name || e.id, day:d.day, date:d.date||"" })));
+  return list;
+}
+const dayValue = x => x.event + "|" + x.day;
+
+async function loadServerDay(){
+  if(CONFIG.PREVIEW_MODE){
+    const n = new Date();
+    const q = x => String(x).padStart(2,"0");
+    SERVER = { date: n.getFullYear()+"-"+q(n.getMonth()+1)+"-"+q(n.getDate()),
+               time: q(n.getHours())+":"+q(n.getMinutes()), cutoff: CONFIG.BUSINESS_DAY_CUTOFF_HOUR||6,
+               loaded: true };
+    return;
+  }
+  const res = await fetch(CONFIG.API_URL + "?action=today");
+  const o = await res.json();
+  if(!o.ok) throw new Error(o.error || "server date unavailable");
+  SERVER = { date:o.businessDate, time:o.time, cutoff:o.cutoffHour, loaded:true };
+}
+
+function blockStore(title, detail){
+  $("menu").classList.add("hidden");
+  $("gate").classList.remove("hidden");
+  $("gate").innerHTML = '<div class="gate-card"><h2>'+esc(title)+'</h2>'
+    + '<p style="margin:8px 0 0">'+esc(detail)+'</p></div>';
+}
+
+async function startMenu(){
+  $("menuStore").textContent = STORE.name + "  ·  " + STORE.region
+    + (CONFIG.PREVIEW_MODE ? "  ·  PREVIEW MODE, NOTHING IS SAVED" : "");
+  $("menuCode").textContent = STORE.code;
+  renderITCard();
+  $("incOpenBtn").onclick = startIncident;
+  $("mDay").onchange = () => { applyDayValue($("mDay").value); paintDay(); };
+  $("dayReason").oninput = () => { DAY.reason = $("dayReason").value.trim(); paintDay(); };
+  $("dayFix").onclick = () => {
+    if(DAY.source === "override"){ leaveCatchUp(); }
+    else { DAY.source = "override"; $("dayOverride").classList.remove("hidden"); resolveDay(); }
+  };
+  $("signOut").onclick = () => { STORE=null; location.reload(); };
+  fillDayOptions();
+  show("menu");
+
+  /* dates are the backbone of the whole thing — refuse to run without them */
+  if(!allDays().some(x => x.date)){
+    blockStore("This event has no dates set",
+      "Head office needs to fill the sale dates in the form before stores can use it. Nothing can be recorded until then.");
+    return;
+  }
+  try{ await loadServerDay(); }
+  catch(e){
+    blockStore("Cannot reach the system clock",
+      "The form takes the date from head office, not from this phone. Try again when you have signal.");
+    return;
+  }
+  resolveDay();                 // establishes today (auto) as the default selection
+  $("toDays").onclick = showDayHome;
+  showDayHome();                // land on the all-days list, not a single day
+}
+
+/* ---- all-days home: every sale day as a card; tap one to see its tasks ---- */
+function showDayHome(){
+  renderDayHome();
+  $("dayTasks").classList.add("hidden");
+  $("dayHome").classList.remove("hidden");
+  depositReminder();
+}
+
+/* ---- 9am priority reminder: any past sale day whose cash has not been banked ---- */
+let REMINDER_DONE=false;
+function afterNine(){ const t=SERVER.time||""; const m=t.match(/^(\d{1,2}):(\d{2})/); if(!m) return false; return (+m[1])>9 || ((+m[1])===9 && (+m[2])>=0); }
+function overdueDeposits(){ const today=SERVER.date; return allDays().filter(x=> x.date && x.date<today).filter(x=>{ const sd=(STORE_DATA[STORE.code]||{})[String(x.day)]||{}; return !sd.deposit; }); }
+function depositReminder(){
+  if(!CONFIG.PREVIEW_MODE) return;   /* live mode reads deposit state from the server; wire in CP3 */
+  if(REMINDER_DONE || !afterNine()) return;
+  const due=overdueDeposits(); if(!due.length) return;
+  REMINDER_DONE=true; showDepositReminder(due);
+}
+function showDepositReminder(due){
+  let ov=$("depReminder");
+  if(!ov){ ov=document.createElement("div"); ov.id="depReminder"; ov.className="dep-ov"; document.body.appendChild(ov); }
+  ov.innerHTML='<div class="dep-card"><div class="dep-h">\u23f0 Cash deposit due</div>'
+    +'<p class="dep-p">It is past 9:00 AM and the cash for these sale days has not been banked yet. Depositing it is a priority task.</p>'
+    +'<div class="dep-list">'+due.map(x=>'<button class="dep-day" data-dv="'+esc(dayValue(x))+'">Day '+esc(x.day)+(x.date?' \u2014 '+esc(x.date):'')+' \u00b7 record deposit \u203a</button>').join("")+'</div>'
+    +'<button class="dep-x" id="depLater">Remind me later</button></div>';
+  ov.style.display="flex";
+  ov.querySelectorAll(".dep-day").forEach(b=> b.onclick=()=>{ ov.style.display="none"; selectDayValue(b.dataset.dv); startBank(); });
+  $("depLater").onclick=()=>{ ov.style.display="none"; };
+}
+/* per-day task status for the home summary strip (reads the in-session preview store, or live TASKS) */
+let STORE_DATA = {};
+function dateOfDay(dayNum){ const x = allDays().find(y => String(y.day)===String(dayNum)); return x ? x.date : ""; }
+function dayTaskStatus(dayNum){
+  const sd = (STORE_DATA[STORE.code]||{})[String(dayNum)] || {};
+  const dt = dateOfDay(dayNum), today = SERVER.date, future = dt > today;
+  const st = k => sd[k] ? "done" : (future ? "locked" : "pending");
+  const dep = sd.deposit ? "done" : future ? "locked" : (dt===today ? "tomorrow" : "overdue");
+  return {
+    pickups: (sd.picks && sd.picks.length) ? "done" : (future ? "locked" : "pending"),
+    wagers: st("shift_wager"), guards: st("shift_guard"),
+    rating: st("performance"), budget: st("budget"), till: st("dayend"),
+    support: st("support"),
+    deposit: dep,
+  };
+}
+function renderDayHome(){
+  const list = allDays().filter(x => x.date);
+  const today = SERVER.date, cutoff = SERVER.cutoff || CONFIG.BUSINESS_DAY_CUTOFF_HOUR || 6;
+  const rel = d => d.date===today ? "today" : (d.date<today ? "past" : "future");
+  const cur = list.find(x => x.date===today);
+  const banner = cur
+    ? '<div class="daybox"><div class="big">Today: Day '+cur.day+' · '+esc(cur.date)+'</div>'
+      + '<div class="sub">Fill today\'s tasks any time up to '+String(cutoff).padStart(2,"0")+':00 am tomorrow. '
+      + 'After that, anything you add or change — except the cash deposit — is filed late and sent to your Cluster Manager to approve.</div></div>'
+    : '<div class="daybox">Today ('+esc(today)+') is not a sale day. Open a past day below to catch up.</div>';
+  const T7 = [
+    {k:"pickups", l:"Pick-up"}, {k:"wagers", l:"Daily wagers"}, {k:"guards", l:"Guards"},
+    {k:"budget", l:"Budget"}, {k:"till", l:"Till + recon"}, {k:"rating", l:"DW + guard rating"},
+    {k:"support", l:"HO + IT attendance"}, {k:"deposit", l:"Deposit"},
+  ];
+  const SW = { done:{t:"Done",c:"done"}, pending:{t:"Pending",c:"pending"},
+               tomorrow:{t:"Due tomorrow",c:"tomorrow"}, overdue:{t:"Pending",c:"overdue"}, locked:{t:"Locked",c:"locked"} };
+  const rows = list.map(x => {
+    const r = rel(x), stt = dayTaskStatus(x.day);
+    let chip, chipCls;
+    if(r==="future"){ chip = "Opens "+esc(x.date); chipCls = "future"; }
+    else if(r==="today"){ chip = "Open now"; chipCls = "today"; }
+    else { const depDone = stt.deposit==="done"; chip = depDone ? "Complete" : "Deposit pending"; chipCls = depDone ? "today" : "due"; }
+    const strip = T7.map(t => { const s = SW[stt[t.k]] || SW.pending;
+      return '<div class="ts"><span class="ts-l">'+esc(t.l)+'</span><span class="ts-s '+s.c+'">'+s.t+'</span></div>'; }).join("");
+    const clickable = r!=="future";
+    return '<div class="dcard'+(clickable?' clk" data-dv="'+esc(dayValue(x))+'"':'"')+'>'
+      + '<div class="dcard-head"><div class="dname">Day '+x.day+' — '+esc(x.date)+'</div>'
+      + '<span class="dchip '+chipCls+'">'+chip+'</span></div>'
+      + '<div class="task-strip">'+strip+'</div>'
+      + (clickable ? '<div class="dcard-foot">Open Day '+x.day+' to fill or review its tasks ›</div>' : '')
+      + '</div>';
+  }).join("");
+  const host = $("dayHome");
+  host.innerHTML = banner + '<p class="grouphead">Your sale days — tap a day to open its tasks</p>' + rows;
+  host.querySelectorAll(".dcard.clk").forEach(b => b.onclick = () => selectDayValue(b.dataset.dv));
+}
+function selectDayValue(v){ const x = allDays().find(y => dayValue(y)===v); if(x) selectDay(x); }
+function selectDay(x){
+  const today = SERVER.date;
+  $("mDay").value = dayValue(x);
+  applyDayValue(dayValue(x));
+  if(x.date === today){
+    DAY.source = "auto"; DAY.reason = ""; $("dayReason").value = "";
+    $("dayOverride").classList.add("hidden");
+  } else {
+    DAY.source = "override"; DAY.reason = "";
+    $("dayOverride").classList.add("hidden");
+  }
+  $("dayFix").style.display = "none";
+  paintDay();
+  $("dayHome").classList.add("hidden");
+  $("dayTasks").classList.remove("hidden");
+  refreshTasks();
+}
+
+function fillDayOptions(){
+  $("mDay").innerHTML = allDays().map(x =>
+    '<option value="'+esc(dayValue(x))+'">' + esc(x.eventName) + ' — Day ' + x.day
+    + (x.date ? " (" + esc(x.date) + ")" : "") + '</option>').join("");
+}
+function applyDayValue(v){
+  const x = allDays().find(y => dayValue(y) === v);
+  if(!x) return;
+  DAY.event = x.event; DAY.eventName = x.eventName; DAY.day = x.day; DAY.date = x.date;
+}
+
+function resolveDay(){
+  const list = allDays(), today = SERVER.date;
+  const hit = list.find(x => x.date === today);
+  if(hit && DAY.source !== "override"){
+    DAY.source = "auto";
+    DAY.event = hit.event; DAY.eventName = hit.eventName; DAY.day = hit.day; DAY.date = hit.date;
+    $("mDay").value = dayValue(hit);
+    DAY.reason = "";
+    $("dayOverride").classList.add("hidden");
+  } else {
+    DAY.source = "override";
+    applyDayValue($("mDay").value);
+    $("dayOverride").classList.remove("hidden");
+  }
+  paintDay();
+}
+
+function leaveCatchUp(){
+  DAY.source = "auto"; DAY.reason = ""; $("dayReason").value = "";
+  $("dayOverride").classList.add("hidden");
+  resolveDay();
+  refreshTasks();
+}
+
+function paintDay(){
+  const box = $("dayBox"), today = SERVER.date, list = allDays();
+  const hit = list.find(x => x.date === today);
+  const rolled = SERVER.loaded && Number(SERVER.time.slice(0,2)) < SERVER.cutoff;
+  let cls, big, sub, ready;
+
+  if(DAY.source === "auto"){
+    cls = "auto"; ready = true;
+    big = "Day " + DAY.day + " — " + DAY.date;
+    sub = DAY.eventName + " · set from today's date at head office"
+        + (rolled ? ", rolled back because it is before " + SERVER.cutoff + ":00." : ".");
+  } else {
+    ready = !!DAY.day;
+    cls = "manual";
+    big = "Catch-up — Day " + (DAY.day || "?") + (DAY.date ? " — " + DAY.date : "") + " (closed)";
+    sub = "This day has closed. Its cash deposit is still due; anything else you add or change here is filed late and sent to your Cluster Manager to approve.";
+  }
+  box.className = "daybox " + cls;
+  box.innerHTML = '<div class="big">'+esc(big)+'</div><div class="sub">'+esc(sub)+'</div>';
+  $("dayFix").textContent = DAY.source === "override" ? "Go back to today" : "File for a different day";
+  DAY.ready = ready;
+  applyCatchUp();
+  renderTasks();
+}
+
+/* Catch-up is impossible to miss: the bar turns amber on every screen and the
+   submit button names the day it is writing to. */
+function applyCatchUp(){
+  const on = DAY.source === "override" && DAY.ready;
+  document.querySelectorAll(".tape").forEach(t => {
+    t.classList.toggle("catchup", on);
+    let chip = t.querySelector(".catchup-chip");
+    if(on){
+      if(!chip){
+        chip = document.createElement("span");
+        chip.className = "catchup-chip";
+        t.querySelector(".tape-inner").insertBefore(chip, t.querySelector(".tape-figs"));
+      }
+      chip.textContent = "Catch-up · Day " + DAY.day;
+    } else if(chip) chip.remove();
+  });
+  ["pSubmit","dSubmit","sSubmit","rSubmit","gSubmit"].forEach(id => {
+    const b = $(id); if(!b) return;
+    if(!b.dataset.label) b.dataset.label = b.textContent;
+    b.textContent = on ? "Submit for Day " + DAY.day : b.dataset.label;
+  });
+}
+
+/* offered after every successful submit while in catch-up, so continuing on an
+   earlier day is always a deliberate choice */
+function offerDayChoice(msgEl){
+  if(!(DAY.source === "override" && DAY.ready)) return;
+  const wrap = document.createElement("div");
+  wrap.className = "choice";
+  wrap.innerHTML = '<button class="btn btn-sm" type="button">Continue with Day '+esc(DAY.day)+'</button>'
+                 + '<button class="btn btn-line btn-sm" type="button">Back to today</button>';
+  const [stay, back] = wrap.querySelectorAll("button");
+  stay.onclick = () => wrap.remove();
+  back.onclick = () => { leaveCatchUp(); show("menu"); };
+  msgEl.appendChild(wrap);
+}
+
+function ctx(){
+  return { event:DAY.event, day:String(DAY.day), dayDate:DAY.date,
+           daySource:DAY.source, dayReason:DAY.reason,
+           label: STORE.name + "  ·  Day " + DAY.day + (DAY.date ? " — " + DAY.date : "") };
+}
+
+/* ---------------- the day checklist ---------------- */
+async function refreshTasks(){
+  TASKS = null;
+  renderTasks();
+  if(!DAY.ready) return;
+  if(CONFIG.PREVIEW_MODE){
+    const all = STORE_DATA[STORE.code] || {};
+    const sd = all[String(DAY.day)] || {};
+    const shifts = [];
+    if(sd.shift_wager) shifts.push({ module:"wager", requested:sd.shift_wager.requested, arrived:sd.shift_wager.arrived });
+    if(sd.shift_guard) shifts.push({ module:"guard", requested:sd.shift_guard.requested, arrived:sd.shift_guard.arrived });
+    const onDuty = shifts.reduce((a,s)=>a+Number(s.arrived||0),0);
+    const deposits = Object.keys(all).filter(dn => all[dn] && all[dn].deposit).map(dn => ({ day:dn }));
+    TASKS = { status:{ picks:(sd.picks||[]), shifts, onDuty, rated:(sd.performance?sd.performance.rated:0),
+                       budget:(sd.budget||null), dayEnd:(sd.dayend||null), deposit:(sd.deposit||null) },
+              deposits };
+    renderTasks();
+    return;
+  }
+  try{
+    const c = ctx();
+    const q = "&store=" + encodeURIComponent(STORE.code) + "&event=" + encodeURIComponent(c.event);
+    const [st, dp] = await Promise.all([
+      fetch(CONFIG.API_URL + "?action=status" + q + "&day=" + encodeURIComponent(c.day) + "&code=" + encodeURIComponent(ACCESS_CODE)).then(r => r.json()),
+      fetch(CONFIG.API_URL + "?action=deposits" + q + "&code=" + encodeURIComponent(ACCESS_CODE)).then(r => r.json())
+    ]);
+    TASKS = { status: st.ok ? st : null, deposits: dp.ok ? (dp.deposits||[]) : [] };
+  }catch(e){ TASKS = null; }
+  renderTasks();
+}
+
+function taskDefs(){
+  const st = TASKS && TASKS.status;
+  const picks = (st && st.picks) || [];
+  const shifts = (st && st.shifts) || [];
+  const shift = m => shifts.find(x => x.module === m);
+  const onDuty = st ? Number(st.onDuty||0) : 0;
+  const rated  = st ? Number(st.rated||0) : 0;
+
+  const pickTxt = picks.length
+    ? picks.map(p => (String(p.seq)==="1"?"1st":"2nd") + " "
+        + (p.vaultUnavailable === "Yes" ? "no vault" : (p.time||"filed"))).join(" · ")
+    : "Not recorded";
+
+  const shiftState = (m, label) => {
+    const x = shift(m);
+    return x ? { state:"done", text: x.arrived + " of " + x.requested + " arrived" }
+             : { state:"todo", text:"Not recorded" };
+  };
+  const w = shiftState("wager"), g = shiftState("guard");
+
+  const perfReady = onDuty > 0;
+  const perf = !perfReady
+    ? { state:"locked", text:"File daily wagers or security guards first" }
+    : rated >= onDuty && onDuty > 0
+      ? { state:"done", text: rated + " of " + onDuty + " rated" }
+      : { state:"todo", text: rated ? rated + " of " + onDuty + " rated" : onDuty + " people to rate" };
+
+  const bud = st && st.budget
+    ? { state:"done", text:"Spent " + fmt(Number(st.budget.dayTotal||0))
+        + (st.budget.remaining !== "" ? " · " + fmt(Number(st.budget.remaining)) + " left" : "") }
+    : { state:"todo", text:"Not recorded" };
+
+  const de = st && st.dayEnd
+    ? { state:"done", text:"Filed " + st.dayEnd.submittedAt }
+    : { state:"todo", text:"Not recorded" };
+
+  /* the deposit belongs to THIS day's cash; it is filed the next morning */
+  const banked = (TASKS && TASKS.deposits) || [];
+  const thisBanked = banked.some(b => String(b.day) === String(DAY.day));
+  const isToday = DAY.date === SERVER.date;
+  const dep = thisBanked
+    ? { state:"done", text:"This day's cash deposited — filed" }
+    : isToday
+      ? { state:"locked", text:"Bank tomorrow morning — not due yet" }
+      : { state:"due", text:"Deposit due — bank Day "+DAY.day+"'s cash" };
+
+  const supRec = (st && st.support) || ((STORE_DATA[STORE.code]||{})[String(DAY.day)]||{}).support;
+  const supT = supRec ? { state:"done", text:((supRec.it||[]).length+(supRec.ho||[]).length)+" on site" } : { state:"todo", text:"Not recorded" };
+  return [
+    { group:"During the day", id:"goPick", title:"Cash pick-up",
+      note:"One submission per pick-up", state: picks.length ? "done" : "todo", text: pickTxt },
+    { group:"At close", id:"goWager", title:"Daily wagers",
+      note:"Shift demand and arrival, then a line each", state:w.state, text:w.text },
+    { group:"At close", id:"goGuard", title:"Security guards",
+      note:"Shift request and arrival, then a line each", state:g.state, text:g.text },
+    { group:"At close", id:"goBudget", title:"Event budget spend",
+      note:"Today's spend against the event budget", state:bud.state, text:bud.text },
+    { group:"At close", id:"goDay", title:"Day-end till variance and reconciliation",
+      note:"Tills, cash, card, fake notes and sign-off", state:de.state, text:de.text },
+    { group:"At close", id:"goPerf", title:"Security guards and daily wagers rating",
+      note:"Rate the daily wagers and guards", state:perf.state, text:perf.text },
+    { group:"At close", id:"goSupport", title:"Head office attendance",
+      note:"HO staff and IT support on site — add each person", state:supT.state, text:supT.text },
+    { group:"Next morning", id:"goBank", title:"Cash deposited in bank",
+      note:"Priority — bank this day's cash", state:dep.state, text:dep.text }
+  ];
+}
+
+function renderTasks(){
+  const host = $("taskList");
+  if(!host) return;
+  /* Banking an earlier day's cash does not belong to any sale day, so it stays
+     reachable even when today is outside the event and no day has been set. */
+  const defs = DAY.ready
+    ? taskDefs()
+    : taskDefs().filter(t => t.id === "goBank").map(t => Object.assign({}, t, { state:"due" }));
+  if(!DAY.ready){
+    host.innerHTML = '<p class="grouphead">Available now</p>'
+      + '<button class="task due" data-go="goBank"><b>Cash deposited in bank</b>'
+      + '<span>Banks an earlier day\'s cash</span>'
+      + '<span class="tstate">No sale day needed</span></button>'
+      + '<p class="meta" style="margin-top:14px">Everything else needs a sale day. '
+      + 'Set one above if you are filing for an earlier day.</p>';
+    host.querySelectorAll(".task").forEach(b => b.onclick = () => startBank());
+    return;
+  }
+  let html = "", group = "";
+  defs.forEach(t => {
+    if(t.group !== group){ group = t.group; html += '<p class="grouphead">'+esc(group)+'</p>'; }
+    const loading = TASKS === null ? " · checking…" : "";
+    html += '<button class="task '+t.state+'" data-go="'+t.id+'"'+(t.state==="locked"?" disabled":"")+'>'
+      + '<b>'+esc(t.title)+'</b><span>'+esc(t.note)+'</span>'
+      + '<span class="tstate">'+esc(t.text)+esc(loading)+'</span></button>';
+  });
+  host.innerHTML = html;
+  host.querySelectorAll(".task").forEach(b => b.onclick = () => {
+    const go = { goPick:startPick, goDay:startDay, goBank:startBank,
+                 goWager:() => startShift("wager"), goGuard:() => startShift("guard"),
+                 goPerf:startPerf, goBudget:startBudget, goSupport:startSupport }[b.dataset.go];
+    if(go) go();
+  });
+}
+
+/* what this store already filed for one day */
+async function loadStatus(box, forDay){
+  box.innerHTML = "";
+  if(forDay === "") return;
+  if(CONFIG.PREVIEW_MODE){ note(box, "Preview mode — no earlier entries are loaded.", "info"); return; }
+  try{
+    const c = ctx();
+    if(forDay) c.day = String(forDay);
+    const url = CONFIG.API_URL + "?action=status&store=" + encodeURIComponent(STORE.code)
+              + "&event=" + encodeURIComponent(c.event) + "&day=" + encodeURIComponent(c.day)
+              + "&code=" + encodeURIComponent(ACCESS_CODE);
+    const res = await fetch(url);
+    const o = await res.json();
+    if(!o.ok) return;
+    const bits = [];
+    (o.picks||[]).forEach(p => bits.push((p.slot||("Pick-up "+p.seq)) + " at " + p.time));
+    if(o.dayEnd) bits.push("day-end submitted " + o.dayEnd.submittedAt + " by " + o.dayEnd.enteredBy);
+    if(o.deposit) bits.push("bank deposit already recorded on " + o.deposit.depositDate);
+    if(bits.length) note(box, "Already recorded for Day " + c.day + ": " + bits.join("; ") + ".", "info");
+    else note(box, "Nothing recorded yet for Day " + c.day + ".", "info");
+    if(box === $("dStatusBox")) applySecondFromStatus(o.picks);
+  }catch(e){}
+}
+
+/* ================= cash pick-up ================= */
+/* Build the "which pick-up" options; any pick-up already recorded is shown
+   disabled ("· already done") so it cannot be picked again from here — the
+   only way to change it is the 🔒 Edit button above. allowSeq stays enabled
+   when that pick-up is the one being edited. */
+function fillPickSeqOptions(allowSeq){
+  const picks = filedPicks();
+  $("pSeq").innerHTML = '<option value="">Select</option>'
+    + CONFIG.PICKUP_SEQUENCE.map((s,i) => {
+        const v = i+1;
+        const done = picks.some(p=>String(p.seq)===String(v)) && String(v)!==String(allowSeq);
+        return '<option value="'+v+'"'+(done?' disabled':'')+'>'+esc(s)+(done?' · already done':'')+'</option>';
+      }).join("");
+}
+function startPick(){
+  $("pickHead").textContent = ctx().label;
+  fillPickSeqOptions();
+  $("pTwo").onchange = savePickDraft;
+  $("pSeq").addEventListener("change", syncVault);
+  $("pVault").onchange = () => { applyVault(); savePickDraft(); };
+  ["pTime","pStaff","pStaffPay","pMgr","pMgrPay","pNotes"].forEach(id => $(id).oninput = savePickDraft);
+  $("pSeq").onchange = savePickDraft;
+  $("pBack").onclick = () => show("menu");
+  $("pSubmit").onclick = submitPick;
+  $("pMsg").innerHTML = "";
+  $("pTime").innerHTML = timeOpts();
+  loadPickDraft();
+  show("pickScreen");
+  if(CONFIG.PREVIEW_MODE) renderPickLocked(); else loadStatus($("pStatusBox"));
+  pickFormState();
+}
+/* The vault tick only makes sense for the second pick-up of the day. */
+function syncVault(){
+  const second = $("pSeq").value === "2";
+  $("pVaultWrap").classList.toggle("hidden", !second);
+  if(!second && $("pVault").checked) $("pVault").checked = false;
+  applyVault();
+}
+
+/* When the vault was not available, nothing else on the form applies. */
+function applyVault(){
+  const off = $("pVault").checked;
+  ["pTimeWrap","pAckWrap","pTwoHead","pTwoNames"].forEach(id => $(id).classList.toggle("dimmed", off));
+  ["pTime","pTwo","pStaff","pStaffPay","pMgr","pMgrPay"].forEach(id => { $(id).disabled = off; });
+  if(off){
+    $("pTime").value = ""; $("pTwo").checked = false;
+    $("pStaff").value = ""; $("pStaffPay").value = "";
+    $("pMgr").value = ""; $("pMgrPay").value = "";
+  }
+}
+
+const pickKey = () => "srl-pick:"+STORE.code+":"+DAY.event+":"+DAY.day;
+function pickLabel(seq){ return CONFIG.PICKUP_SEQUENCE[Number(seq)-1] || ("Pick-up "+seq); }
+function pickData(){
+  const vault = $("pVault").checked && $("pSeq").value === "2";
+  if(vault) return { seq:$("pSeq").value, seqLabel: pickLabel($("pSeq").value),
+    vaultUnavailable:"Yes", time:"", countedByTwo:"", staffName:"", staffPayroll:"",
+    managerName:"", managerPayroll:"", enteredBy:"", notes:$("pNotes").value.trim() };
+  return { seq:$("pSeq").value, seqLabel: $("pSeq").value ? pickLabel($("pSeq").value) : "",
+    vaultUnavailable:"No",
+    time:$("pTime").value, countedByTwo:$("pTwo").checked?"Yes":"No",
+    managerName:$("pMgr").value.trim(), managerPayroll:$("pMgrPay").value.trim(),
+    staffName:$("pStaff").value.trim(), staffPayroll:$("pStaffPay").value.trim(),
+    enteredBy:$("pMgr").value.trim(), notes:$("pNotes").value.trim() };
+}
+function savePickDraft(){
+  try{ localStorage.setItem(pickKey(), JSON.stringify(pickData())); }catch(e){}
+  $("pDraft").textContent = "Draft saved on this device.";
+}
+function loadPickDraft(){
+  let d=null; try{ d = JSON.parse(localStorage.getItem(pickKey())||"null"); }catch(e){}
+  d = d||{};
+  $("pSeq").value=d.seq||"";
+  $("pVault").checked = d.vaultUnavailable==="Yes";
+  syncVault();
+  $("pTime").value=d.time||"";
+  $("pTwo").checked = d.countedByTwo==="Yes";
+  $("pMgr").value=d.managerName||"";   $("pMgrPay").value=d.managerPayroll||"";
+  $("pStaff").value=d.staffName||"";   $("pStaffPay").value=d.staffPayroll||"";
+  $("pNotes").value=d.notes||"";
+  $("pDraft").textContent = (d.seq||d.time) ? "Draft restored from this device." : "";
+}
+/* 24h time -> 12h with AM/PM, for display */
+function fmt12(t){ if(!t) return ""; const m=String(t).match(/^(\d{1,2}):(\d{2})/); if(!m) return t; let h=+m[1]; const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+m[2]+" "+ap; }
+function timeOpts(){ let o='<option value="">--:-- --</option>'; for(let H=0;H<24;H++) for(let M=0;M<60;M+=5){ const v=String(H).padStart(2,"0")+":"+String(M).padStart(2,"0"); o+='<option value="'+v+'">'+fmt12(v)+'</option>'; } return o; }
+function pkr(x){ return "PKR "+fmt(Number(x)||0); }
+function filedPicks(){ const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]; return (sd&&sd.picks)||[]; }
+/* Sale-Readiness model: filed pick-ups stay on screen as LOCKED records; tap Edit to change */
+function renderPickLocked(){
+  const box=$("pStatusBox"); if(!box) return;
+  const picks=filedPicks();
+  if(!picks.length){ box.innerHTML=""; return; }
+  box.innerHTML = '<div class="lockhead">Recorded pick-ups · locked</div>' + picks.map(p=>{
+    const body = p.vaultUnavailable==="Yes"
+      ? '<span class="lr-x">Vault not available — this pick-up did not happen</span>'
+      : '<b>'+esc(fmt12(p.time))+'</b> · counted by two '+(p.countedByTwo==="Yes"?'✓':'✗')
+        +'<div class="lr-sub">Staff '+esc(p.staffName)+' ('+esc(p.staffPayroll)+') · Manager '+esc(p.managerName)+' ('+esc(p.managerPayroll)+')'
+        +(p.notes?' · '+esc(p.notes):'')+'</div>';
+    return '<div class="lockrec"><div class="lr-head"><span><b>'+esc(p.seqLabel||pickLabel(p.seq))+'</b><span class="lr-tag">Saved</span></span>'
+      +'<button class="lockbtn" type="button" data-seq="'+esc(p.seq)+'">🔒 Edit</button></div>'
+      +'<div class="lr-body">'+body+'</div></div>';
+  }).join("");
+  box.querySelectorAll(".lockbtn").forEach(b=> b.onclick = () => editPick(b.dataset.seq));
+}
+function editPick(seq){
+  const p=filedPicks().find(x=>String(x.seq)===String(seq)); if(!p) return;
+  fillPickSeqOptions(seq);
+  $("pSeq").value=p.seq; $("pVault").checked=(p.vaultUnavailable==="Yes"); syncVault();
+  $("pTime").value=p.time||""; $("pTwo").checked=(p.countedByTwo==="Yes");
+  $("pStaff").value=p.staffName||""; $("pStaffPay").value=p.staffPayroll||"";
+  $("pMgr").value=p.managerName||""; $("pMgrPay").value=p.managerPayroll||"";
+  $("pNotes").value=p.notes||"";
+  applyVault();
+  $("pkForm").classList.remove("hidden"); $("pkAllDone").classList.add("hidden"); $("pSubmit").style.display="";
+  note($("pMsg"),"Editing "+(p.seqLabel||pickLabel(seq))+" — change what you need and submit to update.","info");
+}
+function pickFormState(){
+  if(!$("pkForm")) return;
+  const picks=filedPicks();
+  const both=["1","2"].every(s=>picks.some(p=>String(p.seq)===s));
+  fillPickSeqOptions();
+  $("pkForm").classList.toggle("hidden", both);
+  $("pkAllDone").classList.toggle("hidden", !both);
+  $("pSubmit").style.display = both ? "none" : "";
+  if(!both){
+    const cur=$("pSeq").value;
+    const curDone = cur && picks.some(p=>String(p.seq)===String(cur));
+    if(!cur || curDone){ const missing=["1","2"].find(s=>!picks.some(p=>String(p.seq)===s)); if(missing){ $("pSeq").value=missing; syncVault(); } }
+  }
+}
+async function submitPick(){
+  const c = ctx(), p = pickData();
+  if(!p.seq){ note($("pMsg"),"Select whether this is the first or second pick-up.","bad"); return; }
+  if(p.vaultUnavailable === "Yes"){
+    await send($("pSubmit"), $("pMsg"), {
+      action:"pickup",
+      payload: Object.assign({ store:STORE.code, storeName:STORE.name, region:STORE.region,
+        event:c.event, day:c.day, dayDate:c.dayDate, daySource:c.daySource, dayReason:c.dayReason }, p)
+    }, () => {
+      note($("pMsg"), pickLabel(p.seq) + " recorded as not done — vault not available.", "ok");
+      try{ localStorage.removeItem(pickKey()); }catch(e){}
+      $("pSeq").value=""; $("pVault").checked=false; syncVault();
+      $("pNotes").value=""; $("pDraft").textContent=""; renderPickLocked(); pickFormState();
+    });
+    return;
+  }
+  if(!p.time){ note($("pMsg"),"Enter the time of pick-up.","bad"); return; }
+  if(p.countedByTwo!=="Yes"){ note($("pMsg"),"Confirm the cash was counted by two people before the handover.","bad"); return; }
+  if(!p.staffName){ note($("pMsg"),"Enter the name of the staff who verified the cash.","bad"); return; }
+  if(!p.staffPayroll){ note($("pMsg"),"Enter the staff payroll number.","bad"); return; }
+  if(!p.managerName){ note($("pMsg"),"Enter the name of the manager who verified the cash.","bad"); return; }
+  if(!p.managerPayroll){ note($("pMsg"),"Enter the manager payroll number.","bad"); return; }
+  await send($("pSubmit"), $("pMsg"), {
+    action:"pickup",
+    payload: Object.assign({ store:STORE.code, storeName:STORE.name, region:STORE.region,
+      event:c.event, day:c.day, dayDate:c.dayDate, daySource:c.daySource, dayReason:c.dayReason }, p)
+  }, () => {
+    note($("pMsg"), p.seqLabel + " recorded at " + p.time + ".", "ok");
+    try{ localStorage.removeItem(pickKey()); }catch(e){}
+    $("pSeq").value=""; $("pTime").value=""; $("pTwo").checked=false;
+    $("pStaff").value=""; $("pStaffPay").value=""; $("pMgr").value=""; $("pMgrPay").value="";
+    $("pNotes").value=""; $("pDraft").textContent=""; syncVault(); renderPickLocked(); pickFormState();
+  });
+}
+
+/* ================= day end ================= */
+function startDay(){
+  $("dayHead").textContent = ctx().label;
+  $("citLabel").textContent = "Cash handed over to " + CONFIG.CIT_VENDOR;
+  $("addFake").onclick = () => { addFake(true); saveDayDraft(); };
+  $("dBack").onclick = () => show("menu");
+  $("dSubmit").onclick = submitDay;
+  $("dMsg").innerHTML = "";
+  loadDayDraft();
+  show("dayScreen");
+  if(CONFIG.PREVIEW_MODE){ renderDayLocked(); dayFormState(); } else loadStatus($("dStatusBox"));
+}
+
+function addTill(focus, v){
+  v = v || {};
+  const div = document.createElement("div");
+  div.className = "lrow";
+  div.innerHTML =
+      '<div class="lrow-main">'
+    +   '<div><span class="lab">Till</span><input type="text" class="locked f-pos" readonly tabindex="-1"></div>'
+    +   '<div><span class="lab req">Cashier name</span><input type="text" class="f-name" autocomplete="off" placeholder="Full name"></div>'
+    +   '<div><span class="lab req">Payroll no.</span><input type="text" class="num f-pay" autocomplete="off" placeholder="Payroll no."></div>'
+    +   '<div><span class="lab req">Result</span><select class="f-res">'
+    +     '<option value="">Select</option>'
+    +     '<option value="Balanced">Balanced</option>'
+    +     '<option value="Short">Short</option>'
+    +     '<option value="Over">Over</option></select></div>'
+    +   '<div><span class="lab req">Amount (PKR)</span><input type="text" class="num f-amt" inputmode="numeric" placeholder="0"></div>'
+    + '</div>'
+    + '<div class="lrow-sub" style="grid-template-columns:minmax(0,1fr)">'
+    +   '<div><span class="lab f-remlab">Remarks</span><input type="text" class="f-rem" autocomplete="off" placeholder="Reason for the variance"></div>'
+    + '</div>';
+
+  div.querySelector(".f-name").value = v.cashier || "";
+  div.querySelector(".f-pay").value  = v.payroll || "";
+  div.querySelector(".f-res").value  = v.result  || "";
+  div.querySelector(".f-amt").value  = (v.amount===""||v.amount==null) ? "" : v.amount;
+  div.querySelector(".f-rem").value  = v.remarks || "";
+
+  const amt = div.querySelector(".f-amt"), res = div.querySelector(".f-res");
+  /* the amount box only ever holds a positive number — no minus sign to misread */
+  amt.addEventListener("input", () => {
+    let clean = amt.value.replace(/[^0-9.]/g, "");
+    const dot = clean.indexOf(".");
+    if(dot !== -1) clean = clean.slice(0, dot+1) + clean.slice(dot+1).replace(/\./g, "");
+    if(clean !== amt.value) amt.value = clean;
+  });
+  const rem = div.querySelector(".f-rem"), remLab = div.querySelector(".f-remlab");
+  const syncRow = () => {
+    const r = res.value;
+    amt.classList.toggle("is-short", r === "Short");
+    amt.classList.toggle("is-over",  r === "Over");
+    if(r === "Balanced"){ amt.value = "0"; amt.disabled = true; }
+    else { amt.disabled = false; if(amt.value === "0") amt.value = ""; }
+    const needed = (r === "Short" || r === "Over");
+    div.querySelector(".lrow-sub").style.display = needed ? "" : "none";
+    if(!needed) rem.value = "";
+    remLab.className = "lab f-remlab" + (needed ? " req" : "");
+    rem.placeholder = "Reason for the variance";
+  };
+  res.addEventListener("change", () => { syncRow(); tally(); saveDayDraft(); });
+  syncRow();
+
+  div.querySelectorAll("input").forEach(i => i.addEventListener("input", () => { tally(); saveDayDraft(); }));
+  $("tillRows").appendChild(div);
+  renumber();
+  if(focus) div.querySelector(".f-name").focus();
+  return div;
+}
+
+/* The declared count drives the lines, so the two can never disagree. */
+function rowHasData(r){
+  return !!(r.querySelector(".f-name").value.trim() || r.querySelector(".f-pay").value.trim()
+         || r.querySelector(".f-res").value || r.querySelector(".f-rem").value.trim());
+}
+function syncTillRows(){
+  const raw = $("dTills").value.trim();
+  const n = raw === "" ? 0 : Math.floor(num(raw));
+  const rows = () => document.querySelectorAll("#tillRows .lrow");
+  if(isNaN(n) || n < 0){ return; }
+  if(n > 40){ $("dTills").value = "40"; return syncTillRows(); }
+  let dropped = 0;
+  while(rows().length > n){
+    const last = rows()[rows().length-1];
+    if(rowHasData(last)) dropped++;
+    last.remove();
+  }
+  while(rows().length < n) addTill(false);
+  renumber();
+  $("tillHint").textContent = n === 0
+    ? "Enter a number and the till lines appear below."
+    : n + (n===1 ? " till line below." : " till lines below.")
+      + (dropped ? "  " + dropped + " filled line" + (dropped===1?"":"s") + " removed to match the count." : "");
+  tally();
+}
+function renumber(){
+  document.querySelectorAll("#tillRows .lrow").forEach((r,i) => { r.querySelector(".f-pos").value = i+1; });
+}
+
+function addFake(focus, v){
+  v = v || {};
+  const div = document.createElement("div");
+  div.className = "lrow";
+  div.innerHTML =
+      '<div class="frow-main">'
+    +   '<div><span class="lab req">Denomination</span><select class="f-den">'
+    +     '<option value="">Select</option>'
+    +     CONFIG.DENOMINATIONS.map(d => '<option value="'+d+'">PKR '+d.toLocaleString("en-PK")+'</option>').join("")
+    +   '</select></div>'
+    +   '<div><span class="lab req">Number of notes</span><input type="text" class="num f-qty" inputmode="numeric" placeholder="0"></div>'
+    +   '<div><span class="lab">Value (PKR)</span><input type="text" class="locked f-val" readonly tabindex="-1"></div>'
+    + '</div>'
+    + '<div class="frow-sub">'
+    +   '<div><span class="lab req">Employee who took the note</span><input type="text" class="f-emp" autocomplete="off" placeholder="Full name"></div>'
+    +   '<div><span class="lab req">Payroll no.</span><input type="text" class="num f-emppay" autocomplete="off" placeholder="Payroll no."></div>'
+    +   '<div><span class="lab">&nbsp;</span><button class="x" type="button">Remove</button></div>'
+    + '</div>';
+
+  div.querySelector(".f-den").value    = v.denomination || "";
+  div.querySelector(".f-qty").value    = (v.quantity===""||v.quantity==null) ? "" : v.quantity;
+  div.querySelector(".f-emp").value    = v.employee || "";
+  div.querySelector(".f-emppay").value = v.payroll  || "";
+
+  const qty = div.querySelector(".f-qty");
+  qty.addEventListener("input", () => {
+    const clean = qty.value.replace(/[^0-9]/g, "");
+    if(clean !== qty.value) qty.value = clean;
+  });
+  div.querySelector(".x").onclick = () => { div.remove(); fakeTally(); saveDayDraft(); };
+  div.querySelectorAll("input,select").forEach(i =>
+    i.addEventListener(i.tagName==="SELECT" ? "change" : "input", () => { fakeTally(); saveDayDraft(); }));
+  $("fakeRows").appendChild(div);
+  fakeTally();
+  if(focus) div.querySelector(".f-den").focus();
+  return div;
+}
+
+function fakeTally(){
+  let notes = 0, value = 0;
+  document.querySelectorAll("#fakeRows .lrow").forEach(r => {
+    const den = num(r.querySelector(".f-den").value);
+    const q   = num(r.querySelector(".f-qty").value);
+    const ok  = !isNaN(den) && !isNaN(q) && q > 0;
+    r.querySelector(".f-val").value = ok ? fmt(den*q) : "";
+    if(ok){ notes += q; value += den*q; }
+  });
+  $("fakeTotal").textContent = notes
+    ? notes + (notes===1 ? " note" : " notes") + " · PKR " + fmt(value) + " total"
+    : "No fake notes recorded";
+  return { notes:notes, value:value };
+}
+
+/* Short and Over are chosen, never typed as a sign. Variance is derived here. */
+function rowVariance(res, amount){
+  const a = Math.abs(num(amount));
+  if(isNaN(a)) return NaN;
+  if(res === "Short") return -a;
+  if(res === "Over")  return a;
+  if(res === "Balanced") return 0;
+  return NaN;
+}
+
+function cashRecon(){
+  const sys = $("dSys").value.trim()==="" ? NaN : num($("dSys").value);
+  const cit = $("dCit").value.trim()==="" ? NaN : num($("dCit").value);
+  const str = $("dStore").value.trim()==="" ? NaN : num($("dStore").value);
+  const complete = !isNaN(sys) && !isNaN(cit) && !isNaN(str);
+  const accounted = complete ? cit + str : NaN;
+  const diff = complete ? accounted - sys : NaN;
+  return { sys, cit, str, accounted, diff, complete };
+}
+
+function cardRecon(){
+  const sys = $("dCardSys").value.trim()==="" ? NaN : num($("dCardSys").value);
+  const set = $("dCardSet").value.trim()==="" ? NaN : num($("dCardSet").value);
+  const complete = !isNaN(sys) && !isNaN(set);
+  return { sys, set, diff: complete ? set - sys : NaN, complete };
+}
+
+function drawCardRecon(){
+  const r = cardRecon();
+  const v = x => isNaN(x) ? "—" : fmt(x);
+  const clean = r.complete && r.diff === 0;
+  $("recon3").innerHTML =
+      '<div class="recon-row head"><span>Card reconciliation</span><span class="n"></span><span class="n">PKR</span></div>'
+    + '<div class="recon-row"><span>Card sales in system D365</span><span class="n"></span><span class="n">'+v(r.sys)+'</span></div>'
+    + '<div class="recon-row"><span>Settled on card machines</span><span class="n"></span><span class="n">'+v(r.set)+'</span></div>'
+    + '<div class="recon-row result '+(!r.complete ? "" : clean ? "match-ok" : "match-bad")+'"><span>'
+    + (!r.complete ? "Enter both figures"
+        : clean ? "Card sales and settlement agree"
+        : "Card sales and settlement do not agree")
+    + '</span><span class="n"></span><span class="n">'+(r.complete ? fmt(r.diff) : "—")+'</span></div>';
+}
+
+function drawCashRecon(c){
+  const r = cashRecon();
+  const v = x => isNaN(x) ? "—" : fmt(x);
+  const tillNet = c.excess - c.shortage;
+  const match = r.complete && r.diff === tillNet;
+  $("recon2").innerHTML =
+      '<div class="recon-row head"><span>Cash reconciliation</span><span class="n"></span><span class="n">PKR</span></div>'
+    + '<div class="recon-row"><span>Cash in system</span><span class="n"></span><span class="n">'+v(r.sys)+'</span></div>'
+    + '<div class="recon-row"><span>Handed over to '+esc(CONFIG.CIT_VENDOR)+'</span><span class="n"></span><span class="n">'+v(r.cit)+'</span></div>'
+    + '<div class="recon-row"><span>Available at store</span><span class="n"></span><span class="n">'+v(r.str)+'</span></div>'
+    + '<div class="recon-row"><span>Accounted for</span><span class="n"></span><span class="n">'+v(r.accounted)+'</span></div>'
+    + '<div class="recon-row result '+(!r.complete ? "" : match ? "match-ok" : "match-bad")+'"><span>'
+    + (!r.complete ? "Enter all three figures"
+        : match ? "Cash difference agrees with the till lines"
+        : "Cash difference does not agree with the till lines")
+    + '</span><span class="n">'+(r.complete?"till net "+fmt(tillNet):"")+'</span><span class="n">'
+    + (r.complete ? fmt(r.diff) : "—") + '</span></div>';
+}
+
+function computed(){
+  let n=0, sh=0, ov=0;
+  document.querySelectorAll("#tillRows .lrow").forEach(r => {
+    const res = r.querySelector(".f-res").value;
+    const amt = r.querySelector(".f-amt").value.trim();
+    if(!res) return;
+    const v = rowVariance(res, res==="Balanced" ? 0 : amt);
+    if(isNaN(v)) return;
+    n++;
+    if(v<0) sh += Math.abs(v); else ov += v;
+  });
+  return { n:n, shortage:sh, excess:ov, net: ov - sh };
+}
+
+function tally(){
+  const c = computed();
+  $("tTills").textContent = c.n;
+  $("tShort").textContent = fmt(c.shortage);
+  $("tOver").textContent  = fmt(c.excess);
+  const el = $("tNet");
+  el.textContent = fmt(c.net);
+  el.className = "v " + (c.net<0 ? "short" : c.net>0 ? "over" : "");
+  drawRecon(c);
+  drawCashRecon(c);
+  drawCardRecon();
+}
+
+function drawRecon(c){
+  const sRaw = $("dShort").value.trim(), eRaw = $("dOver").value.trim();
+  const ds = sRaw==="" ? NaN : Math.abs(num(sRaw));
+  const de = eRaw==="" ? NaN : Math.abs(num(eRaw));
+  const both = !isNaN(ds) && !isNaN(de) && ds===c.shortage && de===c.excess;
+  const gapS = isNaN(ds) ? 0 : ds - c.shortage;
+  const gapE = isNaN(de) ? 0 : de - c.excess;
+  $("recon").innerHTML =
+      '<div class="recon-row head"><span>Reconciliation</span><span class="n">Till-wise</span><span class="n">You entered</span></div>'
+    + '<div class="recon-row"><span>Total cash shortage</span><span class="n">'+fmt(c.shortage)+'</span><span class="n">'+(isNaN(ds)?"—":fmt(ds))+'</span></div>'
+    + '<div class="recon-row"><span>Total cash excess</span><span class="n">'+fmt(c.excess)+'</span><span class="n">'+(isNaN(de)?"—":fmt(de))+'</span></div>'
+    + '<div class="recon-row result '+(both?"match-ok":"match-bad")+'"><span>'
+    + (both ? "Day totals match the till lines" : "Day totals do not match the till lines")
+    + '</span><span class="n">'+(both?"":"gap")+'</span><span class="n">'
+    + (both ? "OK" : fmt(gapS)+" / "+fmt(gapE)) + '</span></div>';
+}
+
+$("dTills").addEventListener("input", () => {
+  const clean = $("dTills").value.replace(/[^0-9]/g, "");
+  if(clean !== $("dTills").value) $("dTills").value = clean;
+  syncTillRows(); saveDayDraft();
+});
+["dShort","dOver","dSys","dCit","dStore","dCardSys","dCardSet","dCardRem"].forEach(id => $(id).addEventListener("input", () => { tally(); saveDayDraft(); }));
+["dStaff","dStaffPay","dMgr","dMgrPay","dNotes"].forEach(id => $(id).addEventListener("input", saveDayDraft));
+$("dRec").addEventListener("change", saveDayDraft);
+$("dEmail").addEventListener("change", saveDayDraft);
+$("dSecond").addEventListener("change", () => { syncSecond(); saveDayDraft(); });
+
+/* The email to Finance is only asked for when the second pick-up did not happen. */
+function syncSecond(){
+  const no = $("dSecond").value === "No";
+  $("dEmailWrap").classList.toggle("hidden", !no);
+  if(!no) $("dEmail").checked = false;
+}
+
+/* Pre-fill the answer from what this store already filed for today. */
+function applySecondFromStatus(picks){
+  if($("dSecond").value) return;
+  const done     = (picks||[]).some(x => Number(x.seq) === 2 && x.vaultUnavailable !== "Yes");
+  const declined = (picks||[]).some(x => Number(x.seq) === 2 && x.vaultUnavailable === "Yes");
+  if(done){
+    $("dSecond").value = "Yes";
+    $("dSecondHint").textContent = "Set from the second pick-up you recorded today.";
+  } else if(declined){
+    $("dSecond").value = "No";
+    $("dSecondHint").textContent = "Set from the second pick-up you marked as vault not available.";
+  } else {
+    $("dSecondHint").textContent = "No second pick-up has been recorded for today.";
+  }
+  syncSecond();
+}
+
+const dayKey = () => "srl-day:"+STORE.code+":"+DAY.event+":"+DAY.day;
+function dayData(){
+  const tills = [];
+  document.querySelectorAll("#tillRows .lrow").forEach((r,i) => {
+    const cashier = r.querySelector(".f-name").value.trim();
+    const payroll = r.querySelector(".f-pay").value.trim();
+    const result  = r.querySelector(".f-res").value;
+    const amount  = result==="Balanced" ? "0" : r.querySelector(".f-amt").value.trim();
+    if(!cashier && !payroll && !result && amount==="" && !r.querySelector(".f-rem").value.trim()) return;
+    const remarks = r.querySelector(".f-rem").value.trim();
+    tills.push({ pos:i+1, cashier:cashier, payroll:payroll, result:result, remarks:remarks,
+                 amount: amount==="" ? "" : Math.abs(num(amount)),
+                 variance: (!result || amount==="") ? "" : rowVariance(result, amount) });
+  });
+  const fakes = [];
+  document.querySelectorAll("#fakeRows .lrow").forEach(r => {
+    const den = r.querySelector(".f-den").value;
+    const q   = r.querySelector(".f-qty").value.trim();
+    const emp = r.querySelector(".f-emp").value.trim();
+    const pay = r.querySelector(".f-emppay").value.trim();
+    if(!den && q==="" && !emp && !pay) return;
+    fakes.push({ denomination:den, quantity: q==="" ? "" : num(q), employee:emp, payroll:pay,
+                 value: (den && q!=="") ? num(den)*num(q) : "" });
+  });
+  const ft = fakeTally();
+  const c = computed(), r = cashRecon(), cr = cardRecon();
+  return { store:STORE.code, storeName:STORE.name, region:STORE.region,
+    event:DAY.event, day:String(DAY.day), dayDate:DAY.date,
+    daySource:DAY.source, dayReason:DAY.reason,
+    tillCount:$("dTills").value.trim(), tills:tills,
+    cashInSystem:$("dSys").value.trim(), cashHandedOver:$("dCit").value.trim(),
+    cashAtStore:$("dStore").value.trim(), citVendor:CONFIG.CIT_VENDOR,
+    cashAccounted:isNaN(r.accounted)?"":r.accounted, cashDifference:isNaN(r.diff)?"":r.diff,
+    declaredShortage:$("dShort").value.trim(), declaredExcess:$("dOver").value.trim(),
+    computedShortage:c.shortage, computedExcess:c.excess,
+    secondPickupDone:$("dSecond").value, emailToFinance:$("dEmail").checked?"Yes":"No",
+    reconciled:$("dRec").checked?"Yes":"No",
+    staffName:$("dStaff").value.trim(), staffPayroll:$("dStaffPay").value.trim(),
+    managerName:$("dMgr").value.trim(), managerPayroll:$("dMgrPay").value.trim(),
+    fakeNotes:fakes, fakeNoteCount:ft.notes, fakeNoteValue:ft.value,
+    cardInSystem:$("dCardSys").value.trim(), cardSettled:$("dCardSet").value.trim(),
+    cardDifference:isNaN(cr.diff)?"":cr.diff, cardRemarks:$("dCardRem").value.trim(),
+    enteredBy:$("dMgr").value.trim(), notes:$("dNotes").value.trim() };
+}
+function saveDayDraft(){
+  try{ localStorage.setItem(dayKey(), JSON.stringify(dayData())); }catch(e){}
+  $("dDraft").textContent = "Draft saved on this device.";
+}
+function loadDayDraft(src){
+  let d = src || null;
+  if(!d){ try{ d = JSON.parse(localStorage.getItem(dayKey())||"null"); }catch(e){} }
+  d = d||{};
+  $("tillRows").innerHTML = "";
+  (d.tills||[]).forEach(t => addTill(false, t));
+  $("dTills").value = d.tillCount || (d.tills ? String(d.tills.length) : "");
+  if($("dTills").value === "0") $("dTills").value = "";
+  syncTillRows();
+  $("fakeRows").innerHTML = "";
+  (d.fakeNotes||[]).forEach(f => addFake(false, f));
+  fakeTally();
+  $("dSys").value=d.cashInSystem||""; $("dCit").value=d.cashHandedOver||""; $("dStore").value=d.cashAtStore||"";
+  $("dShort").value=d.declaredShortage||""; $("dOver").value=d.declaredExcess||"";
+  $("dSecond").value = d.secondPickupDone||"";
+  $("dEmail").checked = d.emailToFinance==="Yes";
+  syncSecond();
+  $("dRec").checked = d.reconciled==="Yes";
+  $("dStaff").value=d.staffName||"";   $("dStaffPay").value=d.staffPayroll||"";
+  $("dMgr").value=d.managerName||"";   $("dMgrPay").value=d.managerPayroll||"";
+  $("dCardSys").value=d.cardInSystem||""; $("dCardSet").value=d.cardSettled||"";
+  $("dCardRem").value=d.cardRemarks||""; $("dNotes").value=d.notes||"";
+  $("dDraft").textContent = (d.tills && d.tills.length) ? "Draft restored from this device." : "";
+  tally();
+}
+
+function filedDay(){ const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]; return sd && sd.dayend; }
+function renderDayLocked(){
+  const box=$("dayLocked"); if(!box) return;
+  const f=filedDay(); if(!f){ box.innerHTML=""; return; }
+  const tills=(f.tills||[]).map(t=> 'Till '+t.pos+': '+esc(t.cashier||"")+' \u00b7 '+esc(t.result||"")+(Number(t.amount)?" "+pkr(t.amount):"")+(t.remarks?" ("+esc(t.remarks)+")":"")).join('<br>');
+  box.innerHTML='<div class="lockhead">Day-end till variance \u00b7 saved &amp; locked</div>'
+    +(f.amend?'<div class="lr-pending">\u23f3 Amendment pending cluster approval \u2014 '+esc(f.amend.reason)+(f.amend.at?' \u00b7 '+esc(f.amend.at):'')+'</div>':'')
+    +'<div class="lockrec"><div class="lr-head"><span><b>'+(f.tills||[]).length+' tills \u00b7 shortage '+pkr(f.declaredShortage||0)+' \u00b7 excess '+pkr(f.declaredExcess||0)+'</b></span>'
+    +'<button class="lockbtn" type="button" id="dayEditBtn">🔒 Edit</button></div>'
+    +'<div class="lr-body">'+(tills?'<div class="lr-sub">'+tills+'</div>':'')
+    +'<div class="lr-sub">Cash: system '+pkr(f.cashInSystem||0)+' \u00b7 to '+esc(f.citVendor||"CIT")+' '+pkr(f.cashHandedOver||0)+' \u00b7 at store '+pkr(f.cashAtStore||0)+'</div>'
+    +'<div class="lr-sub">Card: system '+pkr(f.cardInSystem||0)+' \u00b7 settled '+pkr(f.cardSettled||0)+'</div>'
+    +((f.fakeNotes||[]).length?'<div class="lr-sub">Fake notes: '+(f.fakeNotes||[]).length+'</div>':'')
+    +'<div class="lr-sub">Reconciled by '+esc(f.staffName||"")+' &amp; '+esc(f.managerName||"")+'</div>'
+    +'</div></div>';
+  $("dayEditBtn").onclick=editDay;
+}
+function editDay(){
+  const f=filedDay(); if(!f) return;
+  loadDayDraft(f);
+  if($("dayForm")) $("dayForm").classList.remove("hidden");
+  if($("dayAmendWrap")) $("dayAmendWrap").classList.remove("hidden");
+  if($("dayAmendReason")) $("dayAmendReason").value="";
+  if($("dayFiledNote")) $("dayFiledNote").classList.add("hidden");
+  if($("dSubmit")) $("dSubmit").style.display="";
+  note($("dMsg"),"Editing the day-end \u2014 change what you need and submit to update.","info");
+}
+function dayFormState(){
+  const filed=!!filedDay();
+  if($("dayAmendWrap")) $("dayAmendWrap").classList.add("hidden");
+  if($("dayForm")) $("dayForm").classList.toggle("hidden", filed);
+  if($("dayFiledNote")) $("dayFiledNote").classList.toggle("hidden", !filed);
+  if($("dSubmit")) $("dSubmit").style.display = filed ? "none" : "";
+}
+async function submitDay(){
+  const p = dayData(), c = computed();
+  const isAmend = !!filedDay();
+  if(isAmend){ const rz=$("dayAmendReason")?$("dayAmendReason").value.trim():""; if(!rz){ note($("dMsg"),"Enter the reason for changing this saved money record. It goes to the cluster manager for approval.","bad"); return; } p.amend={ reason:rz, at:((SERVER.date||"")+" "+(SERVER.time||"")).trim(), status:"pending" }; }
+  if(p.tillCount==="" || isNaN(num(p.tillCount)) || Number(p.tillCount) < 1){
+    note($("dMsg"),"Enter how many tills were operational today.","bad"); return; }
+  if(p.tills.length !== Number(p.tillCount)){
+    note($("dMsg"),"You said "+p.tillCount+" tills were operational but "+p.tills.length+" lines are filled. Complete every line.","bad"); return; }
+  for(let i=0;i<p.tills.length;i++){
+    const t = p.tills[i];
+    if(!t.cashier){ note($("dMsg"),"Till "+t.pos+": enter the cashier name.","bad"); return; }
+    if(!t.payroll){ note($("dMsg"),"Till "+t.pos+": enter the payroll number.","bad"); return; }
+    if(!t.result){ note($("dMsg"),"Till "+t.pos+": choose Balanced, Short or Over.","bad"); return; }
+    if(t.amount==="" || isNaN(t.amount)){ note($("dMsg"),"Till "+t.pos+": enter the amount.","bad"); return; }
+    if(t.result!=="Balanced" && Number(t.amount) <= 0){
+      note($("dMsg"),"Till "+t.pos+": a "+t.result.toLowerCase()+" till needs an amount above zero. Choose Balanced if it tallied.","bad"); return; }
+    if(t.result!=="Balanced" && !t.remarks){
+      note($("dMsg"),"Till "+t.pos+": add remarks explaining the "+t.result.toLowerCase()+".","bad"); return; }
+  }
+  for(let i=0;i<p.fakeNotes.length;i++){
+    const f = p.fakeNotes[i], n = i+1;
+    if(!f.denomination){ note($("dMsg"),"Fake note "+n+": choose the denomination.","bad"); return; }
+    if(f.quantity==="" || isNaN(f.quantity) || Number(f.quantity) <= 0){
+      note($("dMsg"),"Fake note "+n+": enter how many notes.","bad"); return; }
+    if(!f.employee){ note($("dMsg"),"Fake note "+n+": enter the employee who took the note.","bad"); return; }
+    if(!f.payroll){ note($("dMsg"),"Fake note "+n+": enter the employee payroll number.","bad"); return; }
+  }
+  const r = cashRecon();
+  if(isNaN(r.sys)){ note($("dMsg"),"Enter the cash in system.","bad"); return; }
+  if(isNaN(r.cit)){ note($("dMsg"),"Enter the cash handed over to "+CONFIG.CIT_VENDOR+". Use 0 if none was handed over.","bad"); return; }
+  if(isNaN(r.str)){ note($("dMsg"),"Enter the cash available at store. Use 0 if none is held.","bad"); return; }
+  const cr = cardRecon();
+  if(isNaN(cr.sys)){ note($("dMsg"),"Enter the total card sales in system D365.","bad"); return; }
+  if(isNaN(cr.set)){ note($("dMsg"),"Enter the total settled on card machines.","bad"); return; }
+  if(cr.diff !== 0 && !p.cardRemarks){
+    note($("dMsg"),"Card sales and settlement differ by "+fmt(cr.diff)+". Add remarks on the card difference.","bad"); return; }
+  if(p.declaredShortage===""){ note($("dMsg"),"Enter the total cash shortage. Use 0 if there was none.","bad"); return; }
+  if(p.declaredExcess===""){ note($("dMsg"),"Enter the total cash excess. Use 0 if there was none.","bad"); return; }
+  const ds = Math.abs(num(p.declaredShortage)), de = Math.abs(num(p.declaredExcess));
+  if(isNaN(ds) || isNaN(de)){ note($("dMsg"),"Shortage and excess must be numbers.","bad"); return; }
+  if(ds !== c.shortage || de !== c.excess){
+    note($("dMsg"),"Day totals do not match the till lines. Till-wise shortage is "+fmt(c.shortage)
+      +" and excess is "+fmt(c.excess)+". Correct the till lines or the day totals before submitting.","bad"); return; }
+  if(!p.secondPickupDone){ note($("dMsg"),"Say whether the second cash pick-up was completed today.","bad"); return; }
+  if(p.secondPickupDone === "No" && p.emailToFinance !== "Yes"){
+    note($("dMsg"),"The second pick-up was not done, so confirm the email to Finance and Accounts about the cash held in the safe overnight.","bad"); return; }
+  if(!$("dRec").checked){ note($("dMsg"),"Confirm the cash was reconciled and counted by one staff member and one manager.","bad"); return; }
+  if(!p.staffName || !p.staffPayroll){ note($("dMsg"),"Enter the staff member's name and payroll number.","bad"); return; }
+  if(!p.managerName || !p.managerPayroll){ note($("dMsg"),"Enter the manager's name and payroll number.","bad"); return; }
+
+  await send($("dSubmit"), $("dMsg"), { action:"dayend", payload:p }, () => {
+    note($("dMsg"),"Day-end submitted. "+p.tills.length+" till lines recorded for Day "+p.day+".","ok");
+    try{ localStorage.removeItem(dayKey()); }catch(e){}
+    $("dDraft").textContent = ""; renderDayLocked(); dayFormState();
+  });
+}
+
+/* ================= cash deposited in bank ================= */
+/* Day 1 cash goes to the bank on Day 2, so this defaults to the day before today. */
+function startBank(){
+  $("bankHead").textContent = STORE.name + "  ·  Day " + DAY.day + " cash";
+  const days = (CONFIG.EVENTS.find(e => e.id === DAY.event) || {days:[]}).days || [];
+  $("bDay").innerHTML = days.map(x => '<option value="'+x.day+'">Day '+x.day+(x.date?" — "+esc(x.date):"")+'</option>').join("");
+  $("bDate").value = SERVER.date;
+
+  $("bDate").onchange = () => { boundDate(); saveBankDraft(); };
+  ["bSys","bAmt","bReason","bNotes"].forEach(id => $(id).oninput = () => { bankTally(); saveBankDraft(); });
+  $("addPerson").onclick = () => { addPerson(true); saveBankDraft(); };
+  $("bAddFake").onclick = () => { addBankFake(true); saveBankDraft(); };
+  $("bBack").onclick = () => show("menu");
+  $("bSubmit").onclick = submitBank;
+  $("bMsg").innerHTML = "";
+  loadBankDraft();
+  /* the deposit belongs to the day you opened — lock it to that day's cash */
+  $("bDay").value = String(DAY.day);
+  $("bDay").disabled = true;
+  boundDate();
+  show("bankScreen");
+  if(CONFIG.PREVIEW_MODE){ renderBankLocked(); bankFormState(); } else loadStatus($("bStatusBox"), String(DAY.day));
+}
+
+/* The deposit date can be picked, but only inside a sensible window:
+   never before the cash existed, never in the future. */
+function saleDayDate(){
+  const ev = CONFIG.EVENTS.find(e => e.id === DAY.event) || {days:[]};
+  const x = (ev.days||[]).find(y => String(y.day) === String($("bDay").value));
+  return x ? (x.date||"") : "";
+}
+function daysBetween(a, b){
+  if(!a || !b) return NaN;
+  return Math.round((new Date(b+"T00:00:00") - new Date(a+"T00:00:00")) / 86400000);
+}
+function boundDate(){
+  const sale = saleDayDate(), today = SERVER.date;
+  if(sale) $("bDate").min = sale;
+  $("bDate").max = today;
+  if($("bDate").value && $("bDate").value > today) $("bDate").value = today;
+  if(sale && $("bDate").value && $("bDate").value < sale) $("bDate").value = sale;
+  const held = daysBetween(sale, $("bDate").value);
+  let msg = "";
+  if(!sale) msg = "Choose the sale day first.";
+  else if(isNaN(held)) msg = "Pick the date the cash was taken to the bank.";
+  else if(held === 0) msg = "Same day as the sale day.";
+  else if(held === 1) msg = "Next day after the sale day, as expected.";
+  else msg = held + " days after the sale day. The cash was held longer than one night.";
+  $("bDateHint").textContent = msg;
+  $("bDateHint").style.color = held > 1 ? "var(--over)" : "";
+}
+
+function addBankFake(focus, v){
+  v = v || {};
+  const div = document.createElement("div"); div.className = "lrow";
+  div.innerHTML = '<div class="frow-sub" style="margin-top:0">'
+    + '<div><span class="lab req">Denomination (PKR)</span><select class="f-fden"><option value="">Select</option>'
+      + CONFIG.DENOMINATIONS.map(x => '<option>'+x+'</option>').join("") + '</select></div>'
+    + '<div><span class="lab req">How many</span><input type="text" class="num f-fqty" inputmode="numeric" placeholder="0"></div>'
+    + '<div><span class="lab">&nbsp;</span><button class="x" type="button">Remove</button></div>'
+    + '</div>';
+  div.querySelector(".f-fden").value = v.denomination || "";
+  div.querySelector(".f-fqty").value = v.quantity || "";
+  div.querySelector(".x").onclick = () => { div.remove(); saveBankDraft(); };
+  div.querySelectorAll("input,select").forEach(i => i.addEventListener("input", saveBankDraft));
+  $("bankFakeRows").appendChild(div);
+  if(focus) div.querySelector("select").focus();
+  return div;
+}
+function addPerson(focus, v){
+  v = v || {};
+  const div = document.createElement("div");
+  div.className = "lrow";
+  div.innerHTML =
+      '<div class="frow-sub" style="margin-top:0">'
+    +   '<div><span class="lab req">Name</span><input type="text" class="f-pname" autocomplete="off" placeholder="Full name"></div>'
+    +   '<div><span class="lab req">Payroll no.</span><input type="text" class="num f-ppay" autocomplete="off" placeholder="Payroll no."></div>'
+    +   '<div><span class="lab">&nbsp;</span><button class="x" type="button">Remove</button></div>'
+    + '</div>';
+  div.querySelector(".f-pname").value = v.name || "";
+  div.querySelector(".f-ppay").value  = v.payroll || "";
+  div.querySelector(".x").onclick = () => { div.remove(); saveBankDraft(); };
+  div.querySelectorAll("input").forEach(i => i.addEventListener("input", saveBankDraft));
+  $("bankPeople").appendChild(div);
+  if(focus) div.querySelector(".f-pname").focus();
+  return div;
+}
+
+function bankFigures(){
+  const sys = $("bSys").value.trim()==="" ? NaN : num($("bSys").value);
+  const dep = $("bAmt").value.trim()==="" ? NaN : num($("bAmt").value);
+  const complete = !isNaN(sys) && !isNaN(dep);
+  return { sys, dep, diff: complete ? dep - sys : NaN, complete };
+}
+
+function bankTally(){
+  const f = bankFigures();
+  $("tDep").textContent = isNaN(f.dep) ? "0" : fmt(f.dep);
+  $("tSys").textContent = isNaN(f.sys) ? "0" : fmt(f.sys);
+  const el = $("tVar");
+  el.textContent = isNaN(f.diff) ? "0" : fmt(f.diff);
+  el.className = "v " + (f.complete && f.diff<0 ? "short" : f.complete && f.diff>0 ? "over" : "");
+  const clean = f.complete && f.diff === 0;
+  $("recon4").innerHTML =
+      '<div class="recon-row head"><span>Deposit check</span><span class="n"></span><span class="n">PKR</span></div>'
+    + '<div class="recon-row"><span>Cash in system for that day</span><span class="n"></span><span class="n">'+(isNaN(f.sys)?"—":fmt(f.sys))+'</span></div>'
+    + '<div class="recon-row"><span>Deposited in bank</span><span class="n"></span><span class="n">'+(isNaN(f.dep)?"—":fmt(f.dep))+'</span></div>'
+    + '<div class="recon-row result '+(!f.complete ? "" : clean ? "match-ok" : "match-bad")+'"><span>'
+    + (!f.complete ? "Enter both figures" : clean ? "Deposit matches the system figure" : "Deposit does not match the system figure")
+    + '</span><span class="n"></span><span class="n">'+(f.complete?fmt(f.diff):"—")+'</span></div>';
+  const needed = f.complete && f.diff !== 0;
+  $("bReasonLab").className = needed ? "req" : "";
+  $("bReason").placeholder = needed ? "Explain the variance" : "Leave blank if there is no variance";
+}
+
+const bankKey = () => "srl-bank:"+STORE.code+":"+DAY.event+":"+$("bDay").value;
+function bankData(){
+  const people = [];
+  document.querySelectorAll("#bankPeople .lrow").forEach(r => {
+    const n = r.querySelector(".f-pname").value.trim();
+    const y = r.querySelector(".f-ppay").value.trim();
+    if(!n && !y) return;
+    people.push({ name:n, payroll:y });
+  });
+  const fakeNotes = [];
+  document.querySelectorAll("#bankFakeRows .lrow").forEach(r => {
+    const den = r.querySelector(".f-fden").value;
+    const q = r.querySelector(".f-fqty").value.trim();
+    if(!den && !q) return;
+    fakeNotes.push({ denomination:den, quantity:q });
+  });
+  const f = bankFigures();
+  return { store:STORE.code, storeName:STORE.name, region:STORE.region,
+    event:DAY.event, day:$("bDay").value, dayDate:saleDayDate(),
+    depositDate:$("bDate").value, saleDayDate:saleDayDate(),
+    daysHeld:(function(){ const h = daysBetween(saleDayDate(), $("bDate").value); return isNaN(h) ? "" : h; })(),
+    daySource:"deposit", dayReason:"",
+    cashInSystem:$("bSys").value.trim(), cashDeposited:$("bAmt").value.trim(),
+    bankName:$("bBank").value.trim(), slipNo:$("bSlip").value.trim(),
+    variance:isNaN(f.diff)?"":f.diff, varianceReason:$("bReason").value.trim(),
+    people:people, fakeNotes:fakeNotes, enteredBy:(people[0]||{}).name || "", notes:$("bNotes").value.trim() };
+}
+function saveBankDraft(){
+  if(!$("bDay").value) return;
+  try{ localStorage.setItem(bankKey(), JSON.stringify(bankData())); }catch(e){}
+  $("bDraft").textContent = "Draft saved on this device.";
+}
+function loadBankDraft(){
+  let d=null;
+  try{ if($("bDay").value) d = JSON.parse(localStorage.getItem(bankKey())||"null"); }catch(e){}
+  d = d||{};
+  if(d.depositDate) $("bDate").value = d.depositDate;
+  if(d.bankName) $("bBank").value = d.bankName;
+  if(d.slipNo) $("bSlip").value = d.slipNo;
+  boundDate();
+  $("bSys").value=d.cashInSystem||""; $("bAmt").value=d.cashDeposited||"";
+  $("bReason").value=d.varianceReason||""; $("bNotes").value=d.notes||"";
+  $("bankPeople").innerHTML = "";
+  (d.people||[]).forEach(x => addPerson(false, x));
+  if(!document.querySelector("#bankPeople .lrow")){ addPerson(); addPerson(); }
+  $("bankFakeRows").innerHTML=""; (d.fakeNotes||[]).forEach(x => addBankFake(false, x));
+  $("bDraft").textContent = (d.people && d.people.length) ? "Draft restored from this device." : "";
+  bankTally();
+}
+
+async function submitBank(){
+  const p = bankData(), f = bankFigures();
+  if(!p.day){ note($("bMsg"),"Choose which sale day's cash this deposit is for.","bad"); return; }
+  if(!p.depositDate){ note($("bMsg"),"Pick the date the deposit was made.","bad"); return; }
+  if(p.saleDayDate && p.depositDate < p.saleDayDate){
+    note($("bMsg"),"The deposit date cannot be before the sale day.","bad"); return; }
+  if(p.depositDate > SERVER.date){
+    note($("bMsg"),"The deposit date cannot be in the future.","bad"); return; }
+  if(isNaN(f.sys)){ note($("bMsg"),"Enter the total cash in system for that day.","bad"); return; }
+  if(isNaN(f.dep)){ note($("bMsg"),"Enter the total cash deposited in bank.","bad"); return; }
+  if(!p.bankName){ note($("bMsg"),"Enter the bank name.","bad"); return; }
+  if(!p.slipNo){ note($("bMsg"),"Enter the deposit slip number.","bad"); return; }
+  if(f.diff !== 0 && !p.varianceReason){
+    note($("bMsg"),"The deposit differs from the system figure by "+fmt(f.diff)+". Enter the reason for the variance.","bad"); return; }
+  if(!p.people.length){ note($("bMsg"),"Add at least one person who went to the bank.","bad"); return; }
+  for(let i=0;i<p.people.length;i++){
+    if(!p.people[i].name){ note($("bMsg"),"Person "+(i+1)+": enter the name.","bad"); return; }
+    if(!p.people[i].payroll){ note($("bMsg"),"Person "+(i+1)+": enter the payroll number.","bad"); return; }
+  }
+  for(let i=0;i<(p.fakeNotes||[]).length;i++){
+    if(!p.fakeNotes[i].denomination){ note($("bMsg"),"Fake note "+(i+1)+": choose the denomination.","bad"); return; }
+    if(!p.fakeNotes[i].quantity){ note($("bMsg"),"Fake note "+(i+1)+": enter how many notes.","bad"); return; }
+  }
+  await send($("bSubmit"), $("bMsg"), { action:"deposit", payload:p }, () => {
+    note($("bMsg"),"Deposit recorded for Day "+p.day+".","ok");
+    try{ localStorage.removeItem(bankKey()); }catch(e){}
+    $("bDraft").textContent = ""; renderBankLocked(); bankFormState();
+  });
+}
+
+const BANK_FORM_IDS=["bankDayGrid","bankAmtCard","bankPeopleCard","bankFakeCard","bankNotesCard"];
+function bankFiled(){ const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]; return (sd&&sd.deposit&&sd.deposit.cashDeposited!=null)?sd.deposit:null; }
+function bankShowForm(sh){ BANK_FORM_IDS.forEach(id=>{ if($(id)) $(id).classList.toggle("hidden", !sh); }); if($("bSubmit")) $("bSubmit").style.display=sh?"":"none"; if($("bankFiledNote")) $("bankFiledNote").classList.toggle("hidden", sh); }
+function bankFormState(){ bankShowForm(!bankFiled()); }
+function renderBankLocked(){
+  const box=$("bStatusBox"); if(!box) return;
+  const f=bankFiled(); if(!f){ box.innerHTML=""; return; }
+  const bal=(f.variance===''||f.variance==null||Number(f.variance)===0);
+  const varTag=bal?'<span class="lr-tag">matches system</span>':'<span class="lr-tag" style="color:#B23">variance '+fmt(Number(f.variance))+'</span>';
+  const ppl=(f.people||[]).map(x=>esc(x.name)+' ('+esc(x.payroll)+')').join(', ');
+  const fakes=(f.fakeNotes||[]).map(x=>'PKR '+esc(x.denomination)+' ×'+esc(x.quantity)).join(', ');
+  box.innerHTML='<div class="lockhead">Deposit · saved &amp; locked</div>'
+   +'<div class="lockrec"><div class="lr-head"><span><b>Deposited '+pkr(f.cashDeposited)+'</b> '+varTag+'</span>'
+   +'<button class="lockbtn" type="button" id="bankEditBtn">🔒 Edit</button></div>'
+   +'<div class="lr-body"><div class="lr-sub">Sale day '+esc(f.day)+' · in system '+pkr(f.cashInSystem)+' · deposited on '+esc(f.depositDate||'')+'</div>'
+   +((f.bankName||f.slipNo)?'<div class="lr-sub">Bank: '+esc(f.bankName||'—')+' · Slip #'+esc(f.slipNo||'—')+'</div>':'')
+   +(!bal&&f.varianceReason?'<div class="lr-sub">Variance reason: '+esc(f.varianceReason)+'</div>':'')
+   +(ppl?'<div class="lr-sub">Banked by: '+ppl+'</div>':'')
+   +(fakes?'<div class="lr-sub">Fake notes: '+fakes+'</div>':'')
+   +(f.notes?'<div class="lr-sub">Notes: '+esc(f.notes)+'</div>':'')+'</div></div>';
+  $("bankEditBtn").onclick=editBank;
+}
+function editBank(){
+  const f=bankFiled(); if(!f) return;
+  $("bDate").value=f.depositDate||SERVER.date; boundDate();
+  $("bSys").value=f.cashInSystem||""; $("bAmt").value=f.cashDeposited||"";
+  $("bBank").value=f.bankName||""; $("bSlip").value=f.slipNo||"";
+  $("bReason").value=f.varianceReason||""; $("bNotes").value=f.notes||"";
+  $("bankPeople").innerHTML=""; (f.people||[]).forEach(x=>addPerson(false,x)); if(!document.querySelector("#bankPeople .lrow")){ addPerson(); addPerson(); }
+  $("bankFakeRows").innerHTML=""; (f.fakeNotes||[]).forEach(x=>addBankFake(false,x));
+  bankTally(); bankShowForm(true);
+  note($("bMsg"),"Editing the deposit — changes apply directly. Deposits are banked next morning, so no cluster approval is needed.","info");
+}
+
+/* =========== daily wagers and security guards (one shared screen) =========== */
+const SHIFT_MODULES = {
+  wager: {
+    title: "Daily wagers",
+    reqWord: "Demanded",
+    peopleTitle: "Daily wagers on duty",
+    peopleHint: "One line per wager who came",
+    shifts: ["First","Mid","Late"],
+    columns: [
+      { cls:"f-sname",    lab:"Name",            type:"text", ph:"Full name" },
+      { cls:"f-sgender",  lab:"Gender",          type:"select", options:["Male","Female"] },
+      { cls:"f-scontact", lab:"Contact number",  type:"text", ph:"Mobile number" },
+      { cls:"f-sshift",   lab:"Shift",           type:"shift" },
+      { cls:"f-sin",      lab:"Time in",         type:"time" },
+      { cls:"f-sout",     lab:"Time out",        type:"time" }
+    ]
+  },
+  guard: {
+    title: "Security guards",
+    reqWord: "Requested",
+    peopleTitle: "Guards on duty",
+    peopleHint: "One line per guard who came",
+    shifts: ["First","Mid","Overnight"],
+    columns: [
+      { cls:"f-sname",    lab:"Guard name",      type:"text", ph:"Full name" },
+      { cls:"f-sgender",  lab:"Gender",          type:"select", options:["Male","Female"] },
+      { cls:"f-scompany", lab:"Security company", type:"select", options:["Al-Hattaf security PVT. LTD.","Rehman Security PVT. LTD.","Fauji Security PVT. LTD."] },
+      { cls:"f-scontact", lab:"Contact number",  type:"text", ph:"Mobile number" },
+      { cls:"f-sshift",   lab:"Shift",           type:"shift" },
+      { cls:"f-sin",      lab:"Time in",         type:"time" },
+      { cls:"f-sout",     lab:"Time out",        type:"time" }
+    ]
+  }
+};
+let MOD = null;
+
+/* minutes-of-day; returns NaN for blank */
+function toMin(t){ const m=String(t||"").match(/^(\d{1,2}):(\d{2})/); return m ? (+m[1])*60+(+m[2]) : NaN; }
+/* Late arrival / early going against a shift's scheduled window, with grace.
+   Overnight shifts (end earlier than start) are handled by rolling past midnight. */
+function personFlags(from,to,inT,outT){
+  const g = CONFIG.SHIFT_GRACE_MIN||15, flags=[];
+  let s=toMin(from), e=toMin(to), i=toMin(inT), o=toMin(outT);
+  if(!isNaN(s)&&!isNaN(e)&&e<s){ e+=1440; if(!isNaN(o)&&o<s) o+=1440; if(!isNaN(i)&&i<s-720) i+=1440; }
+  if(!isNaN(s)&&!isNaN(i)&& i > s+g) flags.push("Late arrival");
+  if(!isNaN(e)&&!isNaN(o)&& o < e-g) flags.push("Early going");
+  return flags;
+}
+function flagChips(flags){ return (flags||[]).map(f=>'<span class="flag '+(f==="Late arrival"?"flag-late":"flag-early")+'">'+f+'</span>').join(" "); }
+
+function startShift(which){
+  MOD = which;
+  const m = SHIFT_MODULES[which];
+  $("shiftTitle").textContent = m.title;
+  $("shiftHead").textContent = STORE.name + "  ·  Day " + DAY.day + (DAY.date ? " — " + DAY.date : "");
+  $("peopleTitle").textContent = m.peopleTitle;
+  $("peopleHint").textContent = m.peopleHint;
+  $("shiftHint").textContent = m.reqWord.toLowerCase() + " against arrived, by shift";
+  $("kReq").textContent = m.reqWord;
+  buildShiftBlocks();
+  $("addShiftRow").onclick = () => { addShiftRow(true); saveShiftDraft(); };
+  ["sReason","sNotes"].forEach(id => $(id).oninput = saveShiftDraft);
+  $("sBack").onclick = () => show("menu");
+  $("sSubmit").onclick = submitShift;
+  $("sMsg").innerHTML = "";
+  loadShiftDraft();
+  show("shiftScreen");
+  if(CONFIG.PREVIEW_MODE) renderShiftLocked(); else loadStatus($("sStatusBox"));
+  shiftFormState();
+}
+
+function buildShiftBlocks(){
+  const m = SHIFT_MODULES[MOD];
+  $("shiftBlocks").innerHTML = m.shifts.map((nm,i) =>
+      '<div class="shiftblock">'
+    +   '<div class="shift-name">'+esc(nm)+' shift</div>'
+    +   '<div class="shiftrow">'
+    +     '<div><label class="req">Starts</label><select id="sFrom'+i+'" class="timesel">'+timeOpts()+'</select></div>'
+    +     '<div><label class="req">Ends</label><select id="sTo'+i+'" class="timesel">'+timeOpts()+'</select></div>'
+    +     '<div><label class="req">'+esc(m.reqWord)+'</label><input type="text" class="num" id="sReq'+i+'" inputmode="numeric" placeholder="0"></div>'
+    +     '<div><label class="req">Arrived</label><input type="text" class="num" id="sArr'+i+'" inputmode="numeric" placeholder="0"></div>'
+    +   '</div></div>').join("");
+  m.shifts.forEach((nm,i) => {
+    ["sReq"+i,"sArr"+i].forEach(id => $(id).oninput = () => {
+      const clean=$(id).value.replace(/[^0-9]/g,""); if(clean!==$(id).value) $(id).value=clean;
+      shiftTally(); saveShiftDraft();
+    });
+    ["sFrom"+i,"sTo"+i].forEach(id => $(id).onchange = () => { refreshShiftOptions(); shiftTally(); refreshFlags(); saveShiftDraft(); });
+  });
+}
+
+/* the shift names a person can be tagged to (from the module) */
+function shiftNames(){ return (SHIFT_MODULES[MOD]||SHIFT_MODULES.wager).shifts; }
+/* current scheduled windows, keyed by shift name, read from the blocks */
+function currentShifts(){
+  return shiftNames().map((nm,i) => ({ name:nm,
+    from: $("sFrom"+i)?$("sFrom"+i).value:"", to: $("sTo"+i)?$("sTo"+i).value:"",
+    req:  $("sReq"+i)?$("sReq"+i).value.trim():"", arr: $("sArr"+i)?$("sArr"+i).value.trim():"" }));
+}
+function refreshShiftOptions(){ /* placeholder for future per-shift option sync */ }
+
+function addShiftRow(focus, v){
+  v = v || {};
+  const m = SHIFT_MODULES[MOD];
+  const div = document.createElement("div");
+  div.className = "lrow";
+  div.innerHTML = '<div class="lrow-main cols-'+m.columns.length+'">'
+    + m.columns.map(c => '<div><span class="lab req">'+esc(c.lab)+'</span>'
+        + (c.type === "select"
+            ? '<select class="'+esc(c.cls)+'"><option value="">Select</option>'
+              + c.options.map(o => '<option>'+esc(o)+'</option>').join("") + '</select>'
+            : c.type === "shift"
+            ? '<select class="'+esc(c.cls)+'"><option value="">Select</option>'
+              + shiftNames().map(o => '<option>'+esc(o)+'</option>').join("") + '</select>'
+            : c.type === "time"
+            ? '<select class="'+esc(c.cls)+' timesel">'+timeOpts()+'</select>'
+            : '<input type="'+c.type+'" class="'+esc(c.cls)+'" autocomplete="off"'
+              + (c.ph ? ' placeholder="'+esc(c.ph)+'"' : '') + '>')
+        + '</div>').join("")
+    + '<div><span class="lab">&nbsp;</span><button class="x" type="button">Remove</button></div></div>'
+    + '<div class="rowflags"></div>';
+  m.columns.forEach(c => { if(v[c.cls] != null) div.querySelector("."+c.cls).value = v[c.cls]; });
+  div.querySelector(".x").onclick = () => { div.remove(); shiftTally(); saveShiftDraft(); };
+  div.querySelectorAll("input").forEach(i => i.addEventListener("input", () => { refreshFlags(); shiftTally(); saveShiftDraft(); }));
+  div.querySelectorAll("select").forEach(i => i.addEventListener("change", () => { refreshFlags(); shiftTally(); saveShiftDraft(); }));
+  $("shiftRows").appendChild(div);
+  shiftTally(); refreshFlags();
+  if(focus) div.querySelector("input").focus();
+  return div;
+}
+
+/* recompute the Late/Early chip on every person row against the current windows */
+function refreshFlags(){
+  const shifts = currentShifts();
+  document.querySelectorAll("#shiftRows .lrow").forEach(r => {
+    const sel = r.querySelector(".f-sshift"), chip = r.querySelector(".rowflags");
+    if(!chip) return;
+    const sh = sel ? sel.value : "";
+    const def = shifts.find(s => s.name === sh);
+    const inT = r.querySelector(".f-sin")?r.querySelector(".f-sin").value:"";
+    const outT = r.querySelector(".f-sout")?r.querySelector(".f-sout").value:"";
+    const fl = def ? personFlags(def.from, def.to, inT, outT) : [];
+    chip.innerHTML = flagChips(fl);
+  });
+}
+
+function shiftCounts(){
+  const shifts = currentShifts();
+  const reqs = shifts.map(s => s.req==="" ? NaN : num(s.req));
+  const arrs = shifts.map(s => s.arr==="" ? NaN : num(s.arr));
+  const complete = ![...reqs,...arrs].some(isNaN);
+  const req = complete ? reqs.reduce((a,b)=>a+b,0) : NaN;
+  const arr = complete ? arrs.reduce((a,b)=>a+b,0) : NaN;
+  return { shifts, reqs, arrs, complete, req, arr, gap: complete ? req-arr : NaN };
+}
+
+function shiftTally(){
+  const c = shiftCounts(), m = SHIFT_MODULES[MOD] || SHIFT_MODULES.wager;
+  const lines = document.querySelectorAll("#shiftRows .lrow").length;
+  $("tReq").textContent = isNaN(c.req) ? "0" : fmt(c.req);
+  $("tArr").textContent = isNaN(c.arr) ? "0" : fmt(c.arr);
+  $("tLines").textContent = lines;
+  $("tArr").className = "v " + (c.complete && c.gap > 0 ? "short" : "");
+  const linesOk = c.complete && lines === c.arr;
+  let rows = '<div class="recon-row head"><span>Shift check</span><span class="n">'+esc(m.reqWord)+'</span><span class="n">Arrived</span></div>';
+  c.shifts.forEach((s,i) => {
+    rows += '<div class="recon-row"><span>'+esc(s.name)+' shift</span><span class="n">'+(isNaN(c.reqs[i])?"—":fmt(c.reqs[i]))+'</span><span class="n">'+(isNaN(c.arrs[i])?"—":fmt(c.arrs[i]))+'</span></div>';
+  });
+  rows += '<div class="recon-row result '+(!c.complete ? "" : c.gap>0 ? "match-bad" : "match-ok")+'"><span>'
+    + (!c.complete ? "Enter "+m.reqWord.toLowerCase()+" and arrived for every shift"
+        : c.gap > 0 ? "Short by " + fmt(c.gap) : "Everyone " + m.reqWord.toLowerCase() + " arrived")
+    + '</span><span class="n">'+(c.complete?fmt(c.req):"—")+'</span><span class="n">'+(c.complete?fmt(c.arr):"—")+'</span></div>'
+    + '<div class="recon-row result '+(!c.complete ? "" : linesOk ? "match-ok" : "match-bad")+'"><span>'
+    + (!c.complete ? "Lines below" : linesOk ? "Lines match the arrived count" : "Lines do not match the arrived count")
+    + '</span><span class="n"></span><span class="n">'+lines+'</span></div>';
+  $("recon5").innerHTML = rows;
+  const needed = c.complete && c.gap > 0;
+  $("sReasonLab").className = needed ? "req" : "";
+  $("sReason").placeholder = needed ? "Explain the shortfall" : "Leave blank if everyone arrived";
+}
+
+const shiftKey = () => "srl-"+MOD+":"+STORE.code+":"+DAY.event+":"+DAY.day;
+function shiftData(){
+  const m = SHIFT_MODULES[MOD], c = shiftCounts(), people = [];
+  document.querySelectorAll("#shiftRows .lrow").forEach(r => {
+    const o = {}; let any = false;
+    m.columns.forEach(col => { o[col.cls] = r.querySelector("."+col.cls).value.trim(); if(o[col.cls]) any = true; });
+    if(any){
+      const def = c.shifts.find(s => s.name === o["f-sshift"]);
+      o.flags = def ? personFlags(def.from, def.to, o["f-sin"], o["f-sout"]) : [];
+      people.push(o);
+    }
+  });
+  return { module:MOD, moduleName:m.title,
+    store:STORE.code, storeName:STORE.name, region:STORE.region,
+    event:DAY.event, day:String(DAY.day), dayDate:DAY.date,
+    daySource:DAY.source, dayReason:DAY.reason,
+    shifts: c.shifts.map(s => ({ name:s.name, from:s.from, to:s.to, req:s.req, arr:s.arr })),
+    requested: isNaN(c.req)?"":c.req, arrived: isNaN(c.arr)?"":c.arr,
+    totalRequested:isNaN(c.req)?"":c.req, totalArrived:isNaN(c.arr)?"":c.arr,
+    shortfall:isNaN(c.gap)?"":c.gap, shortfallReason:$("sReason").value.trim(),
+    people:people, peopleCount:people.length,
+    enteredBy:"", notes:$("sNotes").value.trim() };
+}
+function saveShiftDraft(){
+  try{ localStorage.setItem(shiftKey(), JSON.stringify(shiftData())); }catch(e){}
+  $("sDraft").textContent = "Draft saved on this device.";
+}
+function applyShifts(shifts){
+  (shifts||[]).forEach((s,i) => {
+    if($("sFrom"+i)) $("sFrom"+i).value = s.from||"";
+    if($("sTo"+i))   $("sTo"+i).value   = s.to||"";
+    if($("sReq"+i))  $("sReq"+i).value  = s.req!=null?String(s.req):"";
+    if($("sArr"+i))  $("sArr"+i).value  = s.arr!=null?String(s.arr):"";
+  });
+}
+function loadShiftDraft(){
+  let d=null; try{ d = JSON.parse(localStorage.getItem(shiftKey())||"null"); }catch(e){}
+  d = d||{};
+  applyShifts(d.shifts);
+  $("sReason").value=d.shortfallReason||""; $("sNotes").value=d.notes||"";
+  $("shiftRows").innerHTML = "";
+  (d.people||[]).forEach(x => addShiftRow(false, x));
+  $("sDraft").textContent = (d.people && d.people.length) ? "Draft restored from this device." : "";
+  shiftTally(); refreshFlags();
+}
+
+function shiftFiled(){ const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]; return sd && sd["shift_"+MOD]; }
+function renderShiftLocked(){
+  const box=$("sStatusBox"); if(!box) return;
+  const f=shiftFiled(); if(!f){ box.innerHTML=""; return; }
+  const m=SHIFT_MODULES[MOD];
+  const shifts = f.shifts || [];
+  const shiftLines = shifts.map(s =>
+    '<div class="lr-sub">'+esc(s.name)+' shift: '+((s.from||s.to)?(fmt12(s.from)+' – '+fmt12(s.to)+' · '):'')+m.reqWord+' '+(s.req||0)+' · arrived '+(s.arr||0)+'</div>').join("");
+  const findDef = nm => shifts.find(s => s.name === nm);
+  const ppl=(f.people||[]).map(pp=>{
+    const def = findDef(pp["f-sshift"]);
+    const fl = (pp.flags && pp.flags.length) ? pp.flags : (def ? personFlags(def.from,def.to,pp["f-sin"],pp["f-sout"]) : []);
+    return '<div class="lr-person">'+esc(pp["f-sname"]||'')
+      +(pp["f-sgender"]?' · '+esc(pp["f-sgender"]):'')
+      +(pp["f-scompany"]?' · '+esc(pp["f-scompany"]):'')
+      +(pp["f-scontact"]?' · '+esc(pp["f-scontact"]):'')
+      +(pp["f-sshift"]?' · '+esc(pp["f-sshift"])+' shift':'')
+      +(pp["f-sin"]?' · in '+fmt12(pp["f-sin"]):'')+(pp["f-sout"]?' out '+fmt12(pp["f-sout"]):'')
+      +(fl.length?' '+flagChips(fl):'')+'</div>';
+  }).join("");
+  box.innerHTML='<div class="lockhead">'+esc(m.title)+' · saved &amp; locked</div>'
+    +'<div class="lockrec"><div class="lr-head"><span><b>'+f.arrived+' of '+f.requested+' arrived</b>'
+    +(Number(f.shortfall)>0?' <span class="lr-tag" style="color:#B23">short '+f.shortfall+'</span>':' <span class="lr-tag">complete</span>')+'</span>'
+    +'<button class="lockbtn" type="button" id="shiftEditBtn">🔒 Edit</button></div>'
+    +'<div class="lr-body">'+shiftLines
+    +(f.shortfallReason?'<div class="lr-sub">Reason: '+esc(f.shortfallReason)+'</div>':'')
+    +(ppl?'<div class="lr-sub" style="margin-top:6px">'+ppl+'</div>':'')+'</div></div>';
+  $("shiftEditBtn").onclick=editShift;
+}
+function editShift(){
+  const f=shiftFiled(); if(!f) return;
+  applyShifts(f.shifts);
+  $("sReason").value=f.shortfallReason||""; $("sNotes").value=f.notes||"";
+  $("shiftRows").innerHTML=""; (f.people||[]).forEach(pp=>addShiftRow(false,pp)); if(!document.querySelector("#shiftRows .lrow")) addShiftRow(false);
+  shiftTally(); refreshFlags();
+  if($("shiftForm1")) $("shiftForm1").classList.remove("hidden"); if($("shiftForm2")) $("shiftForm2").classList.remove("hidden"); if($("shiftFiledNote")) $("shiftFiledNote").classList.add("hidden"); if($("sSubmit")) $("sSubmit").style.display="";
+  note($("sMsg"),"Editing "+esc(SHIFT_MODULES[MOD].title)+" — change and submit to update.","info");
+}
+function shiftFormState(){
+  const filed=!!shiftFiled();
+  if($("shiftForm1")) $("shiftForm1").classList.toggle("hidden", filed);
+  if($("shiftForm2")) $("shiftForm2").classList.toggle("hidden", filed);
+  if($("shiftFiledNote")) $("shiftFiledNote").classList.toggle("hidden", !filed);
+  if($("sSubmit")) $("sSubmit").style.display = filed ? "none" : "";
+}
+async function submitShift(){
+  const m = SHIFT_MODULES[MOD], p = shiftData(), c = shiftCounts();
+  if(!c.complete){ note($("sMsg"),"Enter "+m.reqWord.toLowerCase()+" and arrived for every shift. Use 0 where a shift did not run.","bad"); return; }
+  for(let i=0;i<c.shifts.length;i++){
+    const s=c.shifts[i];
+    if(num(s.req) > 0 && (!s.from || !s.to)){ note($("sMsg"),s.name+" shift: set the scheduled start and end.","bad"); return; }
+    if(c.arrs[i] > c.reqs[i]){ note($("sMsg"),s.name+" shift: more arrived than "+m.reqWord.toLowerCase()+".","bad"); return; }
+  }
+  if(c.gap > 0 && !p.shortfallReason){ note($("sMsg"),"Short by "+fmt(c.gap)+". Enter the reason for the shortfall.","bad"); return; }
+  if(p.people.length !== c.arr){
+    note($("sMsg"),"You recorded "+fmt(c.arr)+" arrived but "+p.people.length+" lines are filled. They must match.","bad"); return; }
+  for(let i=0;i<p.people.length;i++){
+    const row = p.people[i];
+    for(let j=0;j<m.columns.length;j++){
+      const col = m.columns[j];
+      if(!row[col.cls]){
+        note($("sMsg"),"Line "+(i+1)+": "+((col.type==="select"||col.type==="shift") ? "choose the " : "enter the ")
+          + col.lab.toLowerCase()+".","bad"); return; }
+    }
+  }
+  await send($("sSubmit"), $("sMsg"), { action:"shift", payload:p }, () => {
+    note($("sMsg"), m.title + " recorded — " + fmt(c.arr) + " on duty for Day " + p.day + ".", "ok");
+    try{ localStorage.removeItem(shiftKey()); }catch(e){}
+    $("sDraft").textContent = ""; renderShiftLocked(); shiftFormState();
+  });
+}
+/* ================= day-end performance review ================= */
+/* The people rated here are the ones already filed under daily wagers and
+   security guards for the same day. Nobody is typed in twice. */
+let PERF = [];   // [{module, name, company, scores:{}, remark}]
+const PERF_SCALE=[{v:1,w:"Poor"},{v:2,w:"Fair"},{v:3,w:"Good"},{v:4,w:"Excellent"}];
+
+function startPerf(){
+  $("perfHead").textContent = STORE.name + "  ·  Day " + DAY.day + (DAY.date ? " — " + DAY.date : "");
+  $("rBack").onclick = () => show("menu");
+  $("rSubmit").onclick = submitPerf;
+  $("rMsg").innerHTML = ""; $("perfBody").innerHTML = "";
+  PERF = [];
+  perfTally();
+  show("perfScreen");
+  loadPerfPeople();
+}
+
+async function loadPerfPeople(){
+  if(CONFIG.PREVIEW_MODE){
+    const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]||{};
+    const people=[];
+    const flagsFor=(rec,pp)=>{ const def=(rec.shifts||[]).find(s=>s.name===pp["f-sshift"]); return (pp.flags&&pp.flags.length)?pp.flags:(def?personFlags(def.from,def.to,pp["f-sin"],pp["f-sout"]):[]); };
+    if(sd.shift_wager&&sd.shift_wager.people) sd.shift_wager.people.forEach(pp=> people.push({module:"wager", name:pp["f-sname"]||"", company:"", flags:flagsFor(sd.shift_wager,pp), scores:{}, remark:"", detailed:false}));
+    if(sd.shift_guard&&sd.shift_guard.people) sd.shift_guard.people.forEach(pp=> people.push({module:"guard", name:pp["f-sname"]||"", company:pp["f-scompany"]||"", flags:flagsFor(sd.shift_guard,pp), scores:{}, remark:"", detailed:false}));
+    if(!people.length){ note($("rStatusBox"),"Nothing to rate yet - file Daily wagers and Security guards for this day first.","bad"); PERF=[]; renderPerf(); return; }
+    $("rStatusBox").innerHTML="";
+    PERF=people; renderPerf(); return;
+  }
+  note($("rStatusBox"), "Loading the people you filed today…", "info");
+  try{
+    const url = CONFIG.API_URL + "?action=people&store=" + encodeURIComponent(STORE.code)
+              + "&event=" + encodeURIComponent(DAY.event) + "&day=" + encodeURIComponent(DAY.day)
+              + "&code=" + encodeURIComponent(ACCESS_CODE);
+    const res = await fetch(url);
+    const o = await res.json();
+    if(!o.ok){ note($("rStatusBox"),"Could not load today's attendance. Try again when you have signal.","bad"); return; }
+    const people = o.people || [];
+    if(!people.length){
+      note($("rStatusBox"),"Nothing to rate yet. File the daily wagers and security guards sections for today first.","bad");
+      return;
+    }
+    const draft = loadPerfDraft();
+    PERF = people.map(x => {
+      const key = x.module + "|" + x.name;
+      const d = draft[key] || {};
+      return { module:x.module, name:x.name, company:x.company||"",
+               scores: d.scores || {}, remark: d.remark || "", detailed:false };
+    });
+    $("rStatusBox").innerHTML = "";
+    renderPerf();
+  }catch(e){
+    note($("rStatusBox"),"No connection, so today's attendance could not be loaded.","bad");
+  }
+}
+
+function critList(mod){ return CONFIG.PERFORMANCE_CRITERIA[mod] || []; }
+const modLabel = m => m === "guard" ? "Security guard" : "Daily wager";
+
+function renderPerf(){
+  const groups = ["wager","guard"].filter(m => PERF.some(p => p.module === m));
+  const guide = PERF.length ? '<div class="perfguide">Rate each person <b>Poor</b>, <b>Fair</b>, <b>Good</b> or <b>Excellent</b>. A Poor or Fair rating needs a short note on the issue. Late arrival / early going are flagged automatically to help you.</div>' : '';
+  $("perfBody").innerHTML = guide + groups.map(m => {
+    const rows = PERF.map((p,i) => ({p,i})).filter(x => x.p.module === m);
+    return '<div class="card"><div class="card-head"><h3>'+esc(m==="guard"?"Security guards":"Daily wagers")+'</h3><span class="hint">'+rows.length+(rows.length===1?" person":" people")+'</span></div>'+rows.map(x => perfRowHTML(x.p, x.i)).join("")+'</div>';
+  }).join("");
+  document.querySelectorAll(".poverall button").forEach(b => b.onclick = () => { const i=Number(b.dataset.i), v=Number(b.dataset.v); critList(PERF[i].module).forEach(c=> PERF[i].scores[c]=v); PERF[i].detailed=false; renderPerf(); savePerfDraft(); });
+  document.querySelectorAll(".pdetail").forEach(b => b.onclick = () => { const i=Number(b.dataset.i); PERF[i].detailed=!PERF[i].detailed; renderPerf(); });
+  document.querySelectorAll(".perfdetail .seg button").forEach(b => b.onclick = () => { const i=Number(b.dataset.i), crit=b.dataset.crit, val=Number(b.dataset.v); PERF[i].scores[crit]=PERF[i].scores[crit]===val?undefined:val; if(PERF[i].scores[crit]===undefined) delete PERF[i].scores[crit]; renderPerf(); savePerfDraft(); });
+  document.querySelectorAll(".p-remark").forEach(el => el.oninput = () => { PERF[Number(el.dataset.i)].remark=el.value; savePerfDraft(); });
+  perfTally();
+}
+function perfRowHTML(p, i){
+  const crits = critList(p.module);
+  const vals = crits.map(c => p.scores[c]).filter(v => v != null);
+  const allSame = vals.length===crits.length && crits.length>0 && vals.every(v=>v===vals[0]);
+  const overall = allSame ? vals[0] : null;
+  const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : null;
+  const low = crits.some(c => p.scores[c] != null && p.scores[c] <= 2);
+  const statusTxt = overall!=null ? ((PERF_SCALE.find(o=>o.v===overall)||{}).w||"") : (vals.length? "Detailed ("+avg.toFixed(1)+"/4)" : "not rated");
+  const overallSeg = '<span class="seg poverall">'+PERF_SCALE.map(o=>'<button type="button" data-i="'+i+'" data-v="'+o.v+'" class="'+(o.v<=2?"low":"")+'" aria-pressed="'+(overall===o.v)+'">'+o.w+'</button>').join("")+'</span>';
+  let detail="";
+  if(p.detailed){ detail='<div class="perfdetail">'+crits.map(c => '<div class="crit"><span>'+esc(c)+'</span><span class="seg">'+PERF_SCALE.map(o => '<button type="button" data-i="'+i+'" data-crit="'+esc(c)+'" data-v="'+o.v+'" class="'+(o.v<=2?"low":"")+'" aria-pressed="'+(p.scores[c]===o.v)+'">'+o.w+'</button>').join("")+'</span></div>').join("")+'</div>'; }
+  return '<div class="prow"><div class="pname">'+esc(p.name)+'</div><div class="pmeta">'+esc(modLabel(p.module))+(p.company?" \u00b7 "+esc(p.company):"")+' \u00b7 <span class="pavg">'+esc(statusTxt)+'</span></div>'+(p.flags&&p.flags.length?'<div class="prowflags">'+flagChips(p.flags)+'</div>':'')+overallSeg+'<div style="margin-top:8px"><button type="button" class="pdetail linkbtn" data-i="'+i+'">'+(p.detailed?"Hide detail":"Rate in detail")+'</button></div>'+detail+'<div style="margin-top:10px"><label class="'+(low?"req":"")+'" for="rem'+i+'">Remark'+(low?" (needed for a Poor or Fair rating)":" (optional)")+'</label><input type="text" id="rem'+i+'" class="p-remark" data-i="'+i+'" value="'+esc(p.remark)+'" placeholder="'+(low?"What was the issue?":"Anything worth noting")+'"></div></div>';
+}
+function perfTally(){
+  const total = PERF.length;
+  let rated = 0, sum = 0, n = 0;
+  PERF.forEach(p => {
+    const crits = critList(p.module);
+    const vals = crits.map(c => p.scores[c]).filter(v => v != null);
+    if(vals.length === crits.length && crits.length) rated++;
+    vals.forEach(v => { sum += v; n++; });
+  });
+  $("tPeople").textContent = total;
+  $("tRated").textContent = rated;
+  $("tAvg").textContent = n ? (sum/n).toFixed(1) : "—";
+  $("tRated").className = "v " + (total && rated < total ? "short" : "");
+}
+
+const perfKey = () => "srl-perf:"+STORE.code+":"+DAY.event+":"+DAY.day;
+function savePerfDraft(){
+  const o = {};
+  PERF.forEach(p => o[p.module+"|"+p.name] = { scores:p.scores, remark:p.remark });
+  try{ localStorage.setItem(perfKey(), JSON.stringify(o)); }catch(e){}
+  $("rDraft").textContent = "Draft saved on this device.";
+}
+function loadPerfDraft(){
+  try{ return JSON.parse(localStorage.getItem(perfKey())||"{}"); }catch(e){ return {}; }
+}
+
+function perfData(){
+  return { store:STORE.code, storeName:STORE.name, region:STORE.region,
+    event:DAY.event, day:String(DAY.day), dayDate:DAY.date,
+    daySource:DAY.source, dayReason:DAY.reason,
+    people: PERF.map(p => {
+      const crits = critList(p.module);
+      const vals = crits.map(c => p.scores[c]).filter(v => v != null);
+      return { module:p.module, moduleName:modLabel(p.module), name:p.name, company:p.company,
+               scores: crits.map(c => ({ criterion:c, score: p.scores[c] == null ? "" : p.scores[c] })),
+               average: vals.length ? Number((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : "",
+               remark: p.remark.trim() };
+    }),
+    enteredBy:"", notes:"" };
+}
+
+async function submitPerf(){
+  if(!PERF.length){ note($("rMsg"),"There is nobody to rate for today.","bad"); return; }
+  for(let i=0;i<PERF.length;i++){
+    const p = PERF[i], crits = critList(p.module);
+    for(let j=0;j<crits.length;j++){
+      if(p.scores[crits[j]] == null){
+        note($("rMsg"), p.name + ": rate " + crits[j].toLowerCase() + ".", "bad"); return; }
+    }
+    const low = crits.some(c => p.scores[c] <= 2);
+    if(low && !p.remark.trim()){
+      note($("rMsg"), p.name + ": a Poor or Fair rating needs a remark.", "bad"); return; }
+  }
+  const p = perfData();
+  await send($("rSubmit"), $("rMsg"), { action:"performance", payload:p }, () => {
+    note($("rMsg"), PERF.length + " people rated for Day " + p.day + ".", "ok");
+    try{ localStorage.removeItem(perfKey()); }catch(e){}
+    $("rDraft").textContent = "";
+  });
+}
+
+/* ================= event budget ================= */
+/* The allocation is set centrally for the whole event. The store only ever enters
+   what it spent today; every other figure on this screen is calculated. */
+let SPENT_BEFORE = 0, SPENT_KNOWN = false;
+
+function allocatedBudget(){
+  const ev = CONFIG.EVENTS.find(e => e.id === DAY.event);
+  const b = ev && ev.budgets ? ev.budgets[STORE.code] : undefined;
+  return (b === undefined || b === null || b === "") ? NaN : Number(b);
+}
+
+function startBudget(){
+  $("budgetHead").textContent = STORE.name + "  ·  Day " + DAY.day + (DAY.date ? " — " + DAY.date : "");
+  $("budgetFields").innerHTML = CONFIG.BUDGET_CATEGORIES.map(c =>
+    '<div><label for="g_'+esc(c.key)+'">'+esc(c.label)+' (PKR)</label>'
+    + '<input type="text" class="num g-cat" id="g_'+esc(c.key)+'" data-key="'+esc(c.key)+'" inputmode="numeric" placeholder="0"></div>').join("");
+  document.querySelectorAll(".g-cat").forEach(el => el.addEventListener("input", () => {
+    const clean = el.value.replace(/[^0-9.]/g, "");
+    if(clean !== el.value) el.value = clean;
+    budgetTally(); saveBudgetDraft();
+  }));
+  $("gNotes").oninput = saveBudgetDraft;
+  $("gOverReason").oninput = saveBudgetDraft;
+  $("gBack").onclick = () => show("menu");
+  $("gSubmit").onclick = submitBudget;
+  $("gMsg").innerHTML = "";
+  SPENT_BEFORE = 0; SPENT_KNOWN = false;
+  loadBudgetDraft();
+  show("budgetScreen");
+  loadSpentBefore();
+}
+
+/* Pull every other day's spend for this store and event, so the running
+   total is built from what is actually filed, not from what is retyped. */
+async function loadSpentBefore(){
+  if(CONFIG.PREVIEW_MODE){ SPENT_BEFORE = 0; SPENT_KNOWN = true;
+    if(budgetFiled()){ renderBudgetLocked(); } else { note($("gStatusBox"), "Preview mode — earlier days are not loaded.", "info"); }
+    budgetTally(); budgetFormState(); return; }
+  note($("gStatusBox"), "Checking what has already been spent this event…", "info");
+  try{
+    const url = CONFIG.API_URL + "?action=budget&store=" + encodeURIComponent(STORE.code)
+              + "&event=" + encodeURIComponent(DAY.event) + "&day=" + encodeURIComponent(DAY.day)
+              + "&code=" + encodeURIComponent(ACCESS_CODE);
+    const res = await fetch(url);
+    const o = await res.json();
+    if(!o.ok){ note($("gStatusBox"), "Could not read earlier days. The remaining figure below may be incomplete.", "bad"); return; }
+    SPENT_BEFORE = Number(o.spentOtherDays || 0);
+    SPENT_KNOWN = true;
+    const byDay = (o.byDay||[]).map(x => "Day "+x.day+" "+fmt(x.total)).join(" · ");
+    note($("gStatusBox"), byDay ? "Already filed this event: " + byDay + "." : "Nothing filed for this event yet.", "info");
+    if(o.thisDay) note($("gStatusBox"), "Day " + DAY.day + " already has " + fmt(o.thisDay) + " filed. Submitting again replaces it.", "info");
+    budgetTally();
+  }catch(e){
+    note($("gStatusBox"), "No connection, so earlier days could not be read. The remaining figure below may be incomplete.", "bad");
+  }
+}
+
+function budgetSpend(){
+  let total = 0, any = false;
+  const cats = {};
+  document.querySelectorAll(".g-cat").forEach(el => {
+    const v = el.value.trim()==="" ? 0 : num(el.value);
+    cats[el.dataset.key] = el.value.trim()==="" ? "" : v;
+    if(!isNaN(v)){ total += v; if(el.value.trim()!=="") any = true; }
+  });
+  return { cats, total, any };
+}
+
+function budgetTally(){
+  const sp = budgetSpend(), alloc = allocatedBudget();
+  const cum = SPENT_BEFORE + sp.total;
+  const left = isNaN(alloc) ? NaN : alloc - cum;
+  $("tAlloc").textContent  = isNaN(alloc) ? "—" : fmt(alloc);
+  $("tBefore").textContent = fmt(SPENT_BEFORE);
+  $("tToday").textContent  = fmt(sp.total);
+  $("tLeft").textContent   = isNaN(left) ? "—" : fmt(left);
+  $("tLeft").className = "v " + (!isNaN(left) && left < 0 ? "short" : "");
+
+  const over = !isNaN(left) && left < 0;
+  $("recon6").innerHTML =
+      '<div class="recon-row head"><span>Budget for this event</span><span class="n"></span><span class="n">PKR</span></div>'
+    + '<div class="recon-row"><span>Allocated for the whole event</span><span class="n"></span><span class="n">'+(isNaN(alloc)?"not set":fmt(alloc))+'</span></div>'
+    + '<div class="recon-row"><span>Spent on other days'+(SPENT_KNOWN?"":" (not yet read)")+'</span><span class="n"></span><span class="n">'+fmt(SPENT_BEFORE)+'</span></div>'
+    + '<div class="recon-row"><span>Spent today</span><span class="n"></span><span class="n">'+fmt(sp.total)+'</span></div>'
+    + '<div class="recon-row"><span>Spent to date</span><span class="n"></span><span class="n">'+fmt(cum)+'</span></div>'
+    + '<div class="recon-row result '+(isNaN(alloc) ? "" : over ? "match-bad" : "match-ok")+'"><span>'
+    + (isNaN(alloc) ? "No budget set for this store. Ask head office."
+        : over ? "Over the allocated budget by " + fmt(Math.abs(left))
+        : "Remaining after today")
+    + '</span><span class="n"></span><span class="n">'+(isNaN(left)?"—":fmt(left))+'</span></div>';
+  $("gOverWrap").classList.toggle("hidden", !over);
+}
+
+const budgetKey = () => "srl-budget:"+STORE.code+":"+DAY.event+":"+DAY.day;
+function budgetData(){
+  const sp = budgetSpend(), alloc = allocatedBudget();
+  return { store:STORE.code, storeName:STORE.name, region:STORE.region,
+    event:DAY.event, day:String(DAY.day), dayDate:DAY.date,
+    daySource:DAY.source, dayReason:DAY.reason,
+    allocated:isNaN(alloc)?"":alloc, categories:sp.cats, dayTotal:sp.total,
+    spentBefore:SPENT_BEFORE, spentToDate:SPENT_BEFORE + sp.total,
+    remaining:isNaN(alloc)?"":alloc-(SPENT_BEFORE+sp.total),
+    overspendReason:$("gOverReason").value.trim(),
+    enteredBy:"", notes:$("gNotes").value.trim() };
+}
+function saveBudgetDraft(){
+  try{ localStorage.setItem(budgetKey(), JSON.stringify(budgetData())); }catch(e){}
+  $("gDraft").textContent = "Draft saved on this device.";
+}
+function loadBudgetDraft(){
+  let d=null; try{ d = JSON.parse(localStorage.getItem(budgetKey())||"null"); }catch(e){}
+  d = d||{};
+  const cats = d.categories || {};
+  document.querySelectorAll(".g-cat").forEach(el => {
+    const v = cats[el.dataset.key];
+    el.value = (v===""||v==null) ? "" : v;
+  });
+  $("gNotes").value = d.notes||"";
+  $("gOverReason").value = d.overspendReason||"";
+  $("gDraft").textContent = d.dayTotal ? "Draft restored from this device." : "";
+  budgetTally();
+}
+
+async function submitBudget(){
+  const p = budgetData(), sp = budgetSpend();
+  const isAmend = !!budgetFiled();
+  if(isAmend){ const rz=$("budgetAmendReason")?$("budgetAmendReason").value.trim():""; if(!rz){ note($("gMsg"),"Enter the reason for changing this saved money record. It goes to the cluster manager for approval.","bad"); return; } p.amend={ reason:rz, at:((SERVER.date||"")+" "+(SERVER.time||"")).trim(), status:"pending" }; }
+  if(!sp.any){ note($("gMsg"),"Enter what was spent today. Use 0 on a line where nothing was spent.","bad"); return; }
+  let blank = null;
+  document.querySelectorAll(".g-cat").forEach(el => { if(el.value.trim()==="" && !blank) blank = el; });
+  if(blank){ note($("gMsg"),"Fill every line. Enter 0 where nothing was spent.","bad"); return; }
+  if(!SPENT_KNOWN){
+    note($("gMsg"),"Earlier days could not be read, so the running total cannot be checked. Try again when you have signal.","bad"); return; }
+  if(p.remaining !== "" && Number(p.remaining) < 0 && !p.overspendReason){
+    note($("gMsg"),"This takes the event spend over budget by "+fmt(Math.abs(Number(p.remaining)))+". Enter the reason.","bad"); return; }
+  await send($("gSubmit"), $("gMsg"), { action:"budget", payload:p }, () => {
+    note($("gMsg"),"Day "+p.day+" spend recorded: "+fmt(p.dayTotal)+". Spent to date "+fmt(p.spentToDate)+".","ok");
+    try{ localStorage.removeItem(budgetKey()); }catch(e){}
+    $("gDraft").textContent = "";
+    loadSpentBefore();
+  });
+}
+
+const BUDGET_FORM_IDS=["budgetReconBody","budgetSpendCard"];
+function budgetFiled(){ const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]; return (sd&&sd.budget&&sd.budget.categories)?sd.budget:null; }
+function budgetShowForm(sh){ if($("budgetAmendWrap")) $("budgetAmendWrap").classList.add("hidden"); BUDGET_FORM_IDS.forEach(id=>{ if($(id)) $(id).classList.toggle("hidden", !sh); }); if($("gSubmit")) $("gSubmit").style.display=sh?"":"none"; if($("budgetFiledNote")) $("budgetFiledNote").classList.toggle("hidden", sh); if(!sh&&$("gOverWrap")) $("gOverWrap").classList.add("hidden"); }
+function budgetFormState(){ budgetShowForm(!budgetFiled()); }
+function renderBudgetLocked(){
+  const box=$("gStatusBox"); if(!box) return;
+  const f=budgetFiled(); if(!f){ box.innerHTML=""; return; }
+  const cats=CONFIG.BUDGET_CATEGORIES.map(c=>{ const v=(f.categories||{})[c.key]; return (v===''||v==null)?null:'<div class="lr-line"><span>'+esc(c.label)+'</span><span>'+pkr(v)+'</span></div>'; }).filter(Boolean).join('');
+  const over=(f.remaining!==''&&f.remaining!=null&&Number(f.remaining)<0);
+  box.innerHTML='<div class="lockhead">Today’s spend · saved &amp; locked</div>'
+   +(f.amend?'<div class="lr-pending">⏳ Amendment pending cluster approval — '+esc(f.amend.reason)+(f.amend.at?' · '+esc(f.amend.at):'')+'</div>':'')
+   +'<div class="lockrec"><div class="lr-head"><span><b>Spent today '+pkr(f.dayTotal)+'</b> '
+   +(over?'<span class="lr-tag" style="color:#B23">over by '+fmt(Math.abs(Number(f.remaining)))+'</span>':'<span class="lr-tag">remaining '+pkr(f.remaining)+'</span>')+'</span>'
+   +'<button class="lockbtn" type="button" id="budgetEditBtn">🔒 Edit</button></div>'
+   +'<div class="lr-body">'+(cats?'<div class="lr-lines">'+cats+'</div>':'')
+   +(over&&f.overspendReason?'<div class="lr-sub">Overspend reason: '+esc(f.overspendReason)+'</div>':'')
+   +(f.notes?'<div class="lr-sub">Notes: '+esc(f.notes)+'</div>':'')+'</div></div>';
+  $("budgetEditBtn").onclick=editBudget;
+}
+function editBudget(){
+  const f=budgetFiled(); if(!f) return;
+  const cats=f.categories||{};
+  document.querySelectorAll(".g-cat").forEach(el=>{ const v=cats[el.dataset.key]; el.value=(v===''||v==null)?"":v; });
+  $("gNotes").value=f.notes||""; $("gOverReason").value=f.overspendReason||"";
+  budgetTally(); budgetShowForm(true);
+  if($("budgetAmendWrap")) $("budgetAmendWrap").classList.remove("hidden");
+  if($("budgetAmendReason")) $("budgetAmendReason").value="";
+  note($("gMsg"),"Editing today’s spend — change and submit to update.","info");
+}
+
+/* ================= transport ================= */
+/* preview only: keep submissions in memory for the session so the home summary
+   and task list reflect what has been filled (real saving is the live/Code.gs path) */
+function pvDay(store, day){ (STORE_DATA[store]||(STORE_DATA[store]={})); const s=STORE_DATA[store]; (s[day]||(s[day]={picks:[]})); return s[day]; }
+function previewSave(body){
+  const a=body.action, p=body.payload||{}; if(!p.store || p.day==null) return;
+  const sd = pvDay(p.store, String(p.day));
+  if(a==="pickup"){ sd.picks=sd.picks||[]; const i=sd.picks.findIndex(x=>String(x.seq)===String(p.seq));
+    const rec={ seq:p.seq, seqLabel:p.seqLabel, vaultUnavailable:p.vaultUnavailable, time:p.time, countedByTwo:p.countedByTwo,
+      staffName:p.staffName, staffPayroll:p.staffPayroll, managerName:p.managerName, managerPayroll:p.managerPayroll, notes:p.notes };
+    if(i>=0) sd.picks[i]=rec; else sd.picks.push(rec); }
+  else if(a==="dayend"){ sd.dayend=Object.assign({ submittedAt:(SERVER.time||"") }, p); }
+  else if(a==="deposit"){ pvDay(p.store, String(p.day)).deposit=Object.assign({}, p); }
+  else if(a==="shift"){ sd["shift_"+p.module]={ module:p.module, requested:Number(p.requested||p.totalRequested||0), arrived:Number(p.arrived||p.totalArrived||0),
+    shifts:(p.shifts||[]),
+    shortfall:p.shortfall, shortfallReason:p.shortfallReason, people:(p.people||[]), notes:p.notes }; }
+  else if(a==="performance"){ sd.performance={ rated:(p.people||[]).length }; }
+  else if(a==="budget"){ sd.budget=Object.assign({}, p); }
+}
+async function send(btn, msgEl, body, onOk){
+  if(CONFIG.PREVIEW_MODE){
+    previewSave(body);
+    note(msgEl, "Saved for this session (preview — not sent to head office).", "ok");
+    if(typeof onOk === "function") onOk({ ok:true });
+    refreshTasks();
+    return;
+  }
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = "Sending…";
+  note(msgEl,"Sending…","info");
+  try{
+    body.code = ACCESS_CODE;
+    const res = await fetch(CONFIG.API_URL, {
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(body)
+    });
+    const out = await res.json();
+    if(out.ok){
+      onOk(out);
+      if(btn.id !== "bSubmit") offerDayChoice(msgEl);
+      refreshTasks();
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+    else note(msgEl,"Not saved: "+(out.error||"unknown error")+". Your entry is still on screen — try again.","bad");
+  }catch(e){
+    note(msgEl,"No connection. Your entry is saved on this device — reopen this page on the same phone when you have signal and submit again.","bad");
+  }
+  btn.disabled = false; btn.textContent = label;
+}
+
+</script>
+</body>
+</html>
