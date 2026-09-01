@@ -353,7 +353,7 @@ const CONFIG = {
         A sale can run up to 6 days. If an event is shorter, delete the extra
         lines; if it is longer, add more. Nothing else needs changing. */
   EVENTS: [
-    { id: "EVENT-01", name: "Sale Event 2026",
+    { id: "EVENT-02", name: "Sale Event 2026",
       /* Whole-event budget per store (optional). Key = EXACT store name.
          Leave {} if head office has not shared per-store allocations. */
       budgets: {
@@ -405,11 +405,11 @@ const CONFIG = {
         "Blue Area, Swat": 33100
       },
       days: [
-        { day: 1, date: "2026-08-31" },
-        { day: 2, date: "2026-09-01" },
-        { day: 3, date: "2026-09-02" },
-        { day: 4, date: "2026-09-03" },
-        { day: 5, date: "2026-09-04" }
+        { day: 1, date: "2026-09-02" },
+        { day: 2, date: "2026-09-03" },
+        { day: 3, date: "2026-09-04" },
+        { day: 4, date: "2026-09-05" },
+        { day: 5, date: "2026-09-06" }
       ]
     }
   ],
@@ -1532,7 +1532,7 @@ async function hydrateDays(){
   const days=allDays().filter(x=>x.date && x.date<=SERVER.date);
   for(const x of days){
     try{
-      const o=await apiRead({action:"status",event:(CONFIG.EVENTS[0]||{}).id||"EVENT-01",day:String(x.day)});
+      const o=await apiRead({action:"status",event:(CONFIG.EVENTS[0]||{}).id||"EVENT-02",day:String(x.day)});
       if(o.ok) applyDayRecords(x.day, o.records);
     }catch(e){}
   }
