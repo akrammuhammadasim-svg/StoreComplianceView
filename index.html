@@ -98,10 +98,14 @@ input.locked{background:#F4F6F9;color:var(--ink-soft);text-align:center;font-fam
 .lrow-main.cols-3{grid-template-columns:repeat(3,minmax(0,1fr)) 92px}
 .lrow-main.cols-4{grid-template-columns:repeat(4,minmax(0,1fr)) 92px}
 .lrow-main.cols-5{grid-template-columns:repeat(5,minmax(0,1fr)) 92px}
-.lrow-main.cols-6{grid-template-columns:repeat(6,minmax(0,1fr)) 92px}
+/* wager (6 fields) & guard (7 fields) person rows: a clean 4-across, two-line grid —
+   identity on the first line, times + Remove on the second. Every cell equal width. */
+.lrow-main.cols-6{grid-template-columns:repeat(4,minmax(0,1fr))}
+.lrow-main.cols-7{grid-template-columns:repeat(4,minmax(0,1fr))}
+.lrow-main.cols-6 select,.lrow-main.cols-7 select,.lrow-main.cols-6 input,.lrow-main.cols-7 input{width:100%;box-sizing:border-box}
 @media(max-width:620px){
   .lrow-main,.frow-main,.frow-sub{grid-template-columns:1fr 1fr}
-  .lrow-main.cols-3,.lrow-main.cols-4,.lrow-main.cols-5,.lrow-main.cols-6{grid-template-columns:1fr 1fr}
+  .lrow-main.cols-3,.lrow-main.cols-4,.lrow-main.cols-5,.lrow-main.cols-6,.lrow-main.cols-7{grid-template-columns:1fr 1fr}
 }
 .f-amt.is-short{border-color:var(--short);color:var(--short);background:var(--short-tint)}
 .f-amt.is-over{border-color:var(--over);color:var(--over);background:var(--over-tint)}
@@ -270,6 +274,26 @@ input.locked{background:#F4F6F9;color:var(--ink-soft);text-align:center;font-fam
   .card{animation:rise .18s ease-out}
   @keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 }
+
+/* ===== printable cashier variance sheet (browser Print -> Save as PDF) ===== */
+#printArea{display:none}
+@media print{
+  body > *:not(#printArea){display:none !important}
+  #printArea{display:block !important}
+  body{background:#fff !important}
+  .psheet{font:12px/1.45 Arial,sans-serif;color:#000;padding:6mm}
+  .psheet h1{font-size:16px;margin:0 0 4px}
+  .psheet .pmeta{margin:0 0 10px;font-size:12px}
+  .psheet table{width:100%;border-collapse:collapse;font-size:11px}
+  .psheet th,.psheet td{border:1px solid #444;padding:5px 6px;text-align:right}
+  .psheet th{background:#eee;text-align:center}
+  .psheet td:first-child,.psheet th:first-child{text-align:center}
+  .psheet td.sig{min-width:110px;height:26px}
+  .psheet .ptot td{font-weight:bold;background:#f3f3f3}
+  .psheet .pnote{font-size:11px;margin:8px 0 0}
+  .psheet .psign{margin-top:16px;display:flex;flex-direction:column;gap:14px;font-size:12px}
+  .psheet .pinstr{margin-top:14px;border:2px solid #000;padding:9px 11px;font-size:12.5px;background:#fff3cd}
+}
 </style>
 </head>
 <body>
@@ -277,6 +301,44 @@ input.locked{background:#F4F6F9;color:var(--ink-soft);text-align:center;font-fam
 <!-- ============================================================
      CONFIG — the only block you need to edit.
      ============================================================ -->
+
+<!-- ==================== SALE-DAY PREPARATION ==================== -->
+<div id="prepScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">🌙 Sale-day preparation</p>
+    <p class="mast-sub" id="prepHead"></p>
+  </div></div>
+  <div class="wrap">
+    <div style="margin:0 0 14px"><button id="prepBack" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #d7dbe0;border-radius:10px;padding:11px 16px;font-size:14.5px;font-weight:600;color:#1b1f27;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)"><span style="font-size:18px;line-height:1">‹</span> Back</button></div>
+    <div id="prepStatusBox"></div>
+    <div id="prepFormWrap">
+      <div class="card"><div class="card-body" id="prepBody"></div></div>
+      <div class="card"><div class="card-body"><div id="prepMsg"></div>
+        <button class="btn" id="prepSubmit" style="width:100%;background:var(--sapphire)">Submit preparation for tomorrow</button>
+        <p class="meta" style="margin:8px 0 0">Your cluster manager reviews this tonight. If it is sent back, fix what the remarks say and resubmit.</p>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== POST-SALE WIND-DOWN ==================== -->
+<div id="postScreen" class="hidden">
+  <div class="mast"><div class="wrap">
+    <p class="mast-title">🌇 Post-sale wind-down — final confirmation</p>
+    <p class="mast-sub" id="postHead"></p>
+  </div></div>
+  <div class="wrap">
+    <div style="margin:0 0 14px"><button id="postBack" style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #d7dbe0;border-radius:10px;padding:11px 16px;font-size:14.5px;font-weight:600;color:#1b1f27;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)"><span style="font-size:18px;line-height:1">‹</span> Back</button></div>
+    <div id="postStatusBox"></div>
+    <div id="postFormWrap">
+      <div class="card"><div class="card-body" id="postBody"></div></div>
+      <div class="card"><div class="card-body"><div id="postMsg"></div>
+        <button class="btn" id="postSubmit" style="width:100%;background:var(--sapphire)">Submit post-sale confirmation</button>
+        <p class="meta" style="margin:8px 0 0">Your cluster manager reviews this. If sent back, fix what the remarks say and resubmit — pending cash recovery stays flagged until cleared.</p>
+      </div></div>
+    </div>
+  </div>
+</div>
 <script>
 const CONFIG = {
 
@@ -326,7 +388,7 @@ const CONFIG = {
         "Gulgasht Colony, Multan": 101450,
         "Avenue Plaza, Bahawalpur": 64900,
         "Rahim Yar Khan Store": 46050,
-        "College Road, Sahiwal": 77200,
+        "College Road, Sahiwal": 83200,
         "Giga Mall WTC, Rawalpindi": 93750,
         "Giga Boutique": 29500,
         "Centaurus Mall 2, Islamabad": 51700,
@@ -365,7 +427,7 @@ const CONFIG = {
   PICKUP_SEQUENCE: ["First pick-up of the day", "Second pick-up of the day"],
 
   /* Day-end performance criteria. Edit freely — the form, sheet and export follow.
-     Scored 1 to 5. A score of 1 or 2 forces a written remark. */
+     Scored with four words — Poor / Fair / Good / Excellent. Poor or Fair forces a written remark. */
   PERFORMANCE_CRITERIA: {
     wager: ["Grooming", "Floor presence", "Time keeping", "Customer interaction", "Instruction follow-up"],
     guard: ["Grooming", "Time keeping", "Activeness on duty", "Post discipline", "Customer courtesy"]
@@ -375,8 +437,6 @@ const CONFIG = {
      Add or rename here and the form, sheet and export follow. */
   BUDGET_CATEGORIES: [
     { key:"food",            label:"Food" },
-    { key:"wagersRetail",    label:"Daily wagers — Retail" },
-    { key:"wagersFragrance", label:"Daily wagers — Fragrance" },
     { key:"janitorial",      label:"Extra janitorial" },
     { key:"tentage",         label:"Tentage and chairs" },
     { key:"valet",           label:"Valet parking" },
@@ -406,7 +466,10 @@ const CONFIG = {
     <h2>Store daily entry</h2>
     <p>For store teams during the sale event — cash pick-ups, till variance, deposits, staff and support attendance. Enter your <b>store code</b> to begin.</p>
     <label for="gateCode">Store code</label>
-    <input type="text" id="gateCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. EMP-0001">
+    <div style="position:relative">
+      <input type="password" id="gateCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Your store code" style="padding-right:46px;width:100%;box-sizing:border-box">
+      <button type="button" id="gateEye" aria-label="Show code" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;padding:6px;color:#6b7280">👁</button>
+    </div>
     <div style="height:14px"></div>
     <button class="btn btn-block" id="gateBtn">Continue</button>
     <div id="gateMsg"></div>
@@ -447,6 +510,18 @@ const CONFIG = {
     <div class="card" id="incEntryCard"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
       <div><b>🚨 Incident log</b><p class="meta" style="margin:2px 0 0">Theft, outage, fight, injury or any other incident — log it any time. Not tied to a sale day.</p></div>
       <button class="btn" id="incOpenBtn" style="flex:0 0 auto">Open</button>
+    </div></div>
+
+    <!-- SALE-DAY PREPARATION (filed the evening before, for tomorrow) -->
+    <div class="card hidden" id="prepEntryCard" style="border:1.5px solid var(--sapphire)"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><b>🌙 Prepare for tomorrow</b><p class="meta" id="prepCardHint" style="margin:2px 0 0"></p></div>
+      <button class="btn" id="prepOpenBtn" style="flex:0 0 auto;background:var(--sapphire)">Open</button>
+    </div></div>
+
+    <!-- POST-SALE WIND-DOWN (after the last sale day) -->
+    <div class="card hidden" id="postEntryCard" style="border:1.5px solid var(--sapphire)"><div class="card-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><b>🌇 Post-sale wind-down</b><p class="meta" id="postCardHint" style="margin:2px 0 0"></p></div>
+      <button class="btn" id="postOpenBtn" style="flex:0 0 auto;background:var(--sapphire)">Open</button>
     </div></div>
 
     <!-- ONE DAY'S TASKS -->
@@ -992,7 +1067,7 @@ const fmt = n => (n<0?"-":"") + Math.abs(Math.round(n)).toLocaleString("en-PK");
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num = v => { const n = Number(String(v==null?"":v).replace(/,/g,"").trim()); return isFinite(n) ? n : NaN; };
 function note(el, text, kind){ el.innerHTML = '<div class="note note-'+kind+'">'+esc(text)+'</div>'; }
-function show(id){ ["gate","menu","pickScreen","dayScreen","bankScreen","shiftScreen","perfScreen","budgetScreen","supportScreen","incidentScreen"].forEach(x => $(x).classList.toggle("hidden", x!==id)); window.scrollTo(0,0); }
+function show(id){ ["gate","menu","pickScreen","dayScreen","bankScreen","shiftScreen","perfScreen","budgetScreen","supportScreen","incidentScreen","prepScreen","postScreen"].forEach(x => $(x).classList.toggle("hidden", x!==id)); window.scrollTo(0,0); }
 
 const IT_REPS = {
   "Allama Iqbal Town, Lahore":{n:"Amir Sohail",t:"SRL",c:"0300-8064514",m:"On Call"},
@@ -1126,7 +1201,8 @@ function supRenderFiled(){
   const f=supFiled();
   const line=(r,grp)=>{ const sub=grp==="IT"?(r.team||"IT"):(r.dept||"Head office");
     return '<div class="sup-frow"><span class="sup-fname">'+esc(r.name)+' <small>'+esc(grp)+' · '+esc(sub)+(r.contact?' · ☎ '+esc(r.contact):'')+'</small></span>'
-      +'<span class="sup-ftime">'+(r.actIn?esc(fmt12(r.actIn)):"—")+' → '+(r.actOut?esc(fmt12(r.actOut)):"—")+'</span>'+supFlagHTML(r)+'</div>'; };
+      +'<span class="sup-ftime">'+(r.actIn?esc(fmt12(r.actIn)):"—")+' → '+(r.actOut?esc(fmt12(r.actOut)):"—")
+      +((r.actIn&&r.actOut)?' · <b>'+hoursWorked(r.actIn,r.actOut)+'</b>':'')+'</span>'+supFlagHTML(r)+'</div>'; };
   $("supFiledBody").innerHTML =
     '<div class="sup-fgrp">IT support</div>'+ ((f.it&&f.it.length)? f.it.map(r=>line(r,"IT")).join(""):'<p class="sup-empty">None</p>')
     +'<div class="sup-fgrp">Head office</div>'+ ((f.ho&&f.ho.length)? f.ho.map(r=>line(r,"HO")).join(""):'<p class="sup-empty">None</p>');
@@ -1135,10 +1211,7 @@ async function startSupport(){
   /* live: pull the day's saved attendance so re-login shows the filed record */
   if(!CONFIG.PREVIEW_MODE && !supFiled()){
     try{
-      const url=CONFIG.API_URL+"?action=status&store="+encodeURIComponent(STORE.code)
-        +"&event="+encodeURIComponent(DAY.event)+"&day="+encodeURIComponent(DAY.day)
-        +"&code="+encodeURIComponent(ACCESS_CODE);
-      const o=await (await fetch(url)).json();
+      const o=await apiRead({action:"status", event:DAY.event, day:String(DAY.day)});
       if(o.ok && o.support){
         STORE_DATA[STORE.code]=STORE_DATA[STORE.code]||{};
         STORE_DATA[STORE.code][String(DAY.day)]=STORE_DATA[STORE.code][String(DAY.day)]||{};
@@ -1263,7 +1336,7 @@ async function startIncident(){
   $("incFollowWrap").classList.add("hidden"); $("incFollowNote").value=""; $("incMsg").innerHTML="";
   if(!CONFIG.PREVIEW_MODE){
     try{
-      const o=await (await fetch(CONFIG.API_URL+"?action=incidents&code="+encodeURIComponent(ACCESS_CODE))).json();
+      const o=await apiRead({action:"incidents"});
       if(o.ok){ STORE_DATA[STORE.code]=STORE_DATA[STORE.code]||{};
         STORE_DATA[STORE.code]._incidents=(o.incidents||[]).map(function(x){ return x.data||{}; }); }
     }catch(e){}
@@ -1304,9 +1377,21 @@ let RAW = { till:[], pick:[], day:[], fake:[], bank:[], bankPeople:[], shift:[],
 
 /* ================= gate ================= */
 $("gateBtn").onclick = openGate;
+  $("gateEye").onclick = () => {
+    const f=$("gateCode"), show=f.type==="password";
+    f.type = show ? "text" : "password";
+    $("gateEye").textContent = show ? "🙈" : "👁";
+    f.focus();
+  };
+
 $("gateCode").addEventListener("keydown", e => { if(e.key==="Enter") openGate(); });
 
-let ACCESS_CODE = "";
+let ACCESS_CODE = "", TODAY_PREFETCH = null;
+async function apiRead(o){
+  o.code = ACCESS_CODE;
+  const r = await fetch(CONFIG.API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(o)});
+  return await r.json();
+}
 async function openGate(){
   const v = $("gateCode").value.trim().toUpperCase();
   if(!v){ note($("gateMsg"),"Enter your store code to continue.","bad"); return; }
@@ -1314,6 +1399,8 @@ async function openGate(){
     note($("gateMsg"),"This site is not connected to head office yet. The backend URL has not been set.","bad"); return; }
   note($("gateMsg"),"Checking your code…","info");
   try{
+    /* run the code check and the server-date call in PARALLEL — halves login time */
+    if(!TODAY_PREFETCH) TODAY_PREFETCH = fetch(CONFIG.API_URL + "?action=today").then(r=>r.json()).catch(()=>null);
     const res = await fetch(CONFIG.API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
       body:JSON.stringify({action:"auth",code:v})});
     const o = await res.json();
@@ -1349,8 +1436,9 @@ async function loadServerDay(){
                loaded: true };
     return;
   }
-  const res = await fetch(CONFIG.API_URL + "?action=today");
-  const o = await res.json();
+  const o = TODAY_PREFETCH ? await TODAY_PREFETCH : await (await fetch(CONFIG.API_URL + "?action=today")).json();
+  TODAY_PREFETCH = null;
+  if(!o) throw new Error("server date unavailable");
   if(!o.ok) throw new Error(o.error || "server date unavailable");
   SERVER = { date:o.businessDate, time:o.time, cutoff:o.cutoffHour, loaded:true };
 }
@@ -1393,6 +1481,7 @@ async function startMenu(){
   resolveDay();                 // establishes today (auto) as the default selection
   $("toDays").onclick = showDayHome;
   showDayHome();                // land on the all-days list, not a single day
+  hydrateDays();                // pull filed records from the server (refresh-proof state)
 }
 
 /* ---- all-days home: every sale day as a card; tap one to see its tasks ---- */
@@ -1407,8 +1496,52 @@ function showDayHome(){
 let REMINDER_DONE=false;
 function afterNine(){ const t=SERVER.time||""; const m=t.match(/^(\d{1,2}):(\d{2})/); if(!m) return false; return (+m[1])>9 || ((+m[1])===9 && (+m[2])>=0); }
 function overdueDeposits(){ const today=SERVER.date; return allDays().filter(x=> x.date && x.date<today).filter(x=>{ const sd=(STORE_DATA[STORE.code]||{})[String(x.day)]||{}; return !sd.deposit; }); }
+/* pull every past/current day's filed records from the server so locked records,
+   day cards and the deposit reminder survive refresh, re-login and new devices */
+let HYDRATED=false;
+function applyDayRecords(day, R){
+  if(!R) return;
+  STORE_DATA[STORE.code]=STORE_DATA[STORE.code]||{};
+  const dd=STORE_DATA[STORE.code][String(day)]=STORE_DATA[STORE.code][String(day)]||{};
+  if(R.picks&&R.picks.length) dd.picks=R.picks;
+  if(R.shift_wager) dd.shift_wager=R.shift_wager;
+  if(R.shift_guard) dd.shift_guard=R.shift_guard;
+  if(R.dayend) dd.dayend=R.dayend;
+  if(R.deposit) dd.deposit=R.deposit;
+  if(R.budget) dd.budget=R.budget;
+  if(R.performance) dd.performance={rated:(R.performance.people||[]).length,people:R.performance.people||[]};
+  if(R.support) dd.support=R.support;
+  if(R._amendDec) dd._amendDec=R._amendDec;   /* cluster manager's decisions + remarks */
+}
+/* latest decided money-change for a module on this day — so the store SEES the outcome + remarks */
+function amendDecisionFor(module){
+  const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]||{};
+  const list=(sd._amendDec||[]).filter(x=>x.module===module);
+  return list.length?list[list.length-1]:null;
+}
+function amendDecisionHTML(module){
+  const dcn=amendDecisionFor(module); if(!dcn) return "";
+  const ok=dcn.status==="approved";
+  return '<div style="background:'+(ok?'#E7F3EC':'#FBEAE9')+';border:1px solid '+(ok?'#bcd9c8':'#e5b8b5')+';border-radius:9px;padding:9px 12px;margin-top:8px;font-size:13px;color:'+(ok?'#14532d':'#7f1d1d')+'">'
+    +(ok?'✓ <b>Your change was APPROVED</b>':'✕ <b>Your change was NOT approved</b> — the record went back to the previous figures')
+    +' by '+esc(dcn.by||"cluster manager")+(dcn.at?' · '+esc(dcn.at):'')
+    +(dcn.remarks?'<br><b>Manager\'s remarks:</b> '+esc(dcn.remarks):'')+'</div>';
+}
+async function hydrateDays(){
+  if(CONFIG.PREVIEW_MODE) return;
+  const days=allDays().filter(x=>x.date && x.date<=SERVER.date);
+  for(const x of days){
+    try{
+      const o=await apiRead({action:"status",event:(CONFIG.EVENTS[0]||{}).id||"EVENT-01",day:String(x.day)});
+      if(o.ok) applyDayRecords(x.day, o.records);
+    }catch(e){}
+  }
+  HYDRATED=true;
+  if(!$("dayHome").classList.contains("hidden")) renderDayHome();
+  depositReminder();
+}
 function depositReminder(){
-  if(!CONFIG.PREVIEW_MODE) return;   /* live mode reads deposit state from the server; wire in CP3 */
+  if(!CONFIG.PREVIEW_MODE && !HYDRATED) return;   /* wait for server state before nagging */
   if(REMINDER_DONE || !afterNine()) return;
   const due=overdueDeposits(); if(!due.length) return;
   REMINDER_DONE=true; showDepositReminder(due);
@@ -1622,10 +1755,11 @@ async function refreshTasks(){
     const c = ctx();
     const q = "&store=" + encodeURIComponent(STORE.code) + "&event=" + encodeURIComponent(c.event);
     const [st, dp] = await Promise.all([
-      fetch(CONFIG.API_URL + "?action=status" + q + "&day=" + encodeURIComponent(c.day) + "&code=" + encodeURIComponent(ACCESS_CODE)).then(r => r.json()),
-      fetch(CONFIG.API_URL + "?action=deposits" + q + "&code=" + encodeURIComponent(ACCESS_CODE)).then(r => r.json())
+      apiRead({action:"status", event:c.event, day:String(c.day)}),
+      apiRead({action:"deposits", event:c.event})
     ]);
     TASKS = { status: st.ok ? st : null, deposits: dp.ok ? (dp.deposits||[]) : [] };
+    if(st.ok) applyDayRecords(c.day, st.records);
   }catch(e){ TASKS = null; }
   renderTasks();
 }
@@ -1741,11 +1875,7 @@ async function loadStatus(box, forDay){
   try{
     const c = ctx();
     if(forDay) c.day = String(forDay);
-    const url = CONFIG.API_URL + "?action=status&store=" + encodeURIComponent(STORE.code)
-              + "&event=" + encodeURIComponent(c.event) + "&day=" + encodeURIComponent(c.day)
-              + "&code=" + encodeURIComponent(ACCESS_CODE);
-    const res = await fetch(url);
-    const o = await res.json();
+    const o = await apiRead({action:"status", event:c.event, day:String(c.day)});
     if(!o.ok) return;
     const bits = [];
     (o.picks||[]).forEach(p => bits.push((p.slot||("Pick-up "+p.seq)) + " at " + p.time));
@@ -1785,7 +1915,8 @@ function startPick(){
   $("pTime").innerHTML = timeOpts();
   loadPickDraft();
   show("pickScreen");
-  if(CONFIG.PREVIEW_MODE) renderPickLocked(); else loadStatus($("pStatusBox"));
+  renderPickLocked(); if(typeof pickFormState==="function") pickFormState();
+  if(!CONFIG.PREVIEW_MODE && !(typeof filedPicks==="function" && filedPicks().length)) loadStatus($("pStatusBox"));
   pickFormState();
 }
 /* The vault tick only makes sense for the second pick-up of the day. */
@@ -1840,6 +1971,13 @@ function loadPickDraft(){
   $("pDraft").textContent = (d.seq||d.time) ? "Draft restored from this device." : "";
 }
 /* 24h time -> 12h with AM/PM, for display */
+function hoursWorked(inT,outT){
+  const m=t=>{ if(!t) return null; const p=String(t).split(":"); return (+p[0])*60+(+p[1]); };
+  let a=m(inT), b=m(outT); if(a==null||b==null) return "";
+  if(b<a) b+=24*60;
+  const mins=b-a, h=Math.floor(mins/60), mm=mins%60;
+  return h+"h"+(mm?" "+String(mm)+"m":"");
+}
 function fmt12(t){ if(!t) return ""; const m=String(t).match(/^(\d{1,2}):(\d{2})/); if(!m) return t; let h=+m[1]; const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+m[2]+" "+ap; }
 function timeOpts(){ let o='<option value="">--:-- --</option>'; for(let H=0;H<24;H++) for(let M=0;M<60;M+=5){ const v=String(H).padStart(2,"0")+":"+String(M).padStart(2,"0"); o+='<option value="'+v+'">'+fmt12(v)+'</option>'; } return o; }
 function pkr(x){ return "PKR "+fmt(Number(x)||0); }
@@ -1932,7 +2070,8 @@ function startDay(){
   $("dMsg").innerHTML = "";
   loadDayDraft();
   show("dayScreen");
-  if(CONFIG.PREVIEW_MODE){ renderDayLocked(); dayFormState(); } else loadStatus($("dStatusBox"));
+  renderDayLocked(); dayFormState();
+  if(!CONFIG.PREVIEW_MODE && !filedDay()) loadStatus($("dStatusBox"));
 }
 
 function addTill(focus, v){
@@ -1940,16 +2079,22 @@ function addTill(focus, v){
   const div = document.createElement("div");
   div.className = "lrow";
   div.innerHTML =
-      '<div class="lrow-main">'
+      '<div class="lrow-main cols-7">'
     +   '<div><span class="lab">Till</span><input type="text" class="locked f-pos" readonly tabindex="-1"></div>'
     +   '<div><span class="lab req">Cashier name</span><input type="text" class="f-name" autocomplete="off" placeholder="Full name"></div>'
     +   '<div><span class="lab req">Payroll no.</span><input type="text" class="num f-pay" autocomplete="off" placeholder="Payroll no."></div>'
-    +   '<div><span class="lab req">Result</span><select class="f-res">'
+    +   '<div><span class="lab req">Cash result</span><select class="f-res">'
     +     '<option value="">Select</option>'
     +     '<option value="Balanced">Balanced</option>'
     +     '<option value="Short">Short</option>'
     +     '<option value="Over">Over</option></select></div>'
-    +   '<div><span class="lab req">Amount (PKR)</span><input type="text" class="num f-amt" inputmode="numeric" placeholder="0"></div>'
+    +   '<div><span class="lab req">Cash amount (PKR)</span><input type="text" class="num f-amt" inputmode="numeric" placeholder="0"></div>'
+    +   '<div><span class="lab req">Card result</span><select class="f-cres">'
+    +     '<option value="">Select</option>'
+    +     '<option value="Matches">Matches</option>'
+    +     '<option value="Short">Short</option>'
+    +     '<option value="Over">Over</option></select></div>'
+    +   '<div><span class="lab req">Card amount (PKR)</span><input type="text" class="num f-camt" inputmode="numeric" placeholder="0"></div>'
     + '</div>'
     + '<div class="lrow-sub" style="grid-template-columns:minmax(0,1fr)">'
     +   '<div><span class="lab f-remlab">Remarks</span><input type="text" class="f-rem" autocomplete="off" placeholder="Reason for the variance"></div>'
@@ -1958,6 +2103,8 @@ function addTill(focus, v){
   div.querySelector(".f-name").value = v.cashier || "";
   div.querySelector(".f-pay").value  = v.payroll || "";
   div.querySelector(".f-res").value  = v.result  || "";
+  div.querySelector(".f-cres").value = v.cardResult || "";
+  div.querySelector(".f-camt").value = (v.cardAmount===""||v.cardAmount==null) ? "" : v.cardAmount;
   div.querySelector(".f-amt").value  = (v.amount===""||v.amount==null) ? "" : v.amount;
   div.querySelector(".f-rem").value  = v.remarks || "";
 
@@ -1969,20 +2116,34 @@ function addTill(focus, v){
     if(dot !== -1) clean = clean.slice(0, dot+1) + clean.slice(dot+1).replace(/\./g, "");
     if(clean !== amt.value) amt.value = clean;
   });
+  const camt = div.querySelector(".f-camt"), cres = div.querySelector(".f-cres");
+  camt.addEventListener("input", () => {
+    let clean2 = camt.value.replace(/[^0-9.]/g, "");
+    const dot2 = clean2.indexOf(".");
+    if(dot2 !== -1) clean2 = clean2.slice(0, dot2+1) + clean2.slice(dot2+1).replace(/\./g, "");
+    if(clean2 !== camt.value) camt.value = clean2;
+  });
   const rem = div.querySelector(".f-rem"), remLab = div.querySelector(".f-remlab");
   const syncRow = () => {
-    const r = res.value;
+    const r = res.value, cr = cres.value;
     amt.classList.toggle("is-short", r === "Short");
     amt.classList.toggle("is-over",  r === "Over");
     if(r === "Balanced"){ amt.value = "0"; amt.disabled = true; }
     else { amt.disabled = false; if(amt.value === "0") amt.value = ""; }
-    const needed = (r === "Short" || r === "Over");
+    camt.classList.toggle("is-short", cr === "Short");
+    camt.classList.toggle("is-over",  cr === "Over");
+    if(cr === "Matches"){ camt.value = "0"; camt.disabled = true; }
+    else { camt.disabled = false; if(camt.value === "0") camt.value = ""; }
+    /* remarks are needed the moment EITHER cash or card is off — even if they
+       cancel each other out to a net of zero, errors were made */
+    const needed = (r === "Short" || r === "Over" || cr === "Short" || cr === "Over");
     div.querySelector(".lrow-sub").style.display = needed ? "" : "none";
     if(!needed) rem.value = "";
     remLab.className = "lab f-remlab" + (needed ? " req" : "");
-    rem.placeholder = "Reason for the variance";
+    rem.placeholder = "Reason for the cash / card variance";
   };
   res.addEventListener("change", () => { syncRow(); tally(); saveDayDraft(); });
+  cres.addEventListener("change", () => { syncRow(); tally(); saveDayDraft(); });
   syncRow();
 
   div.querySelectorAll("input").forEach(i => i.addEventListener("input", () => { tally(); saveDayDraft(); }));
@@ -1995,7 +2156,7 @@ function addTill(focus, v){
 /* The declared count drives the lines, so the two can never disagree. */
 function rowHasData(r){
   return !!(r.querySelector(".f-name").value.trim() || r.querySelector(".f-pay").value.trim()
-         || r.querySelector(".f-res").value || r.querySelector(".f-rem").value.trim());
+         || r.querySelector(".f-res").value || r.querySelector(".f-cres").value || r.querySelector(".f-rem").value.trim());
 }
 function syncTillRows(){
   const raw = $("dTills").value.trim();
@@ -2136,17 +2297,24 @@ function drawCashRecon(c){
 }
 
 function computed(){
-  let n=0, sh=0, ov=0;
+  let n=0, sh=0, ov=0, csh=0, cov=0;
   document.querySelectorAll("#tillRows .lrow").forEach(r => {
     const res = r.querySelector(".f-res").value;
     const amt = r.querySelector(".f-amt").value.trim();
-    if(!res) return;
-    const v = rowVariance(res, res==="Balanced" ? 0 : amt);
-    if(isNaN(v)) return;
-    n++;
-    if(v<0) sh += Math.abs(v); else ov += v;
+    if(res){
+      const v = rowVariance(res, res==="Balanced" ? 0 : amt);
+      if(!isNaN(v)){ n++; if(v<0) sh += Math.abs(v); else ov += v; }
+    }
+    const cres = r.querySelector(".f-cres").value;
+    const camt = r.querySelector(".f-camt").value.trim();
+    if(cres){
+      const cv = rowVariance(cres==="Matches"?"Balanced":cres, cres==="Matches" ? 0 : camt);
+      if(!isNaN(cv)){ if(cv<0) csh += Math.abs(cv); else cov += cv; }
+    }
   });
-  return { n:n, shortage:sh, excess:ov, net: ov - sh };
+  return { n:n, shortage:sh, excess:ov, net: ov - sh,
+           cardShort:csh, cardExcess:cov, cardNet: cov - csh,
+           totalNet: (ov - sh) + (cov - csh) };
 }
 
 function tally(){
@@ -2222,11 +2390,18 @@ function dayData(){
     const payroll = r.querySelector(".f-pay").value.trim();
     const result  = r.querySelector(".f-res").value;
     const amount  = result==="Balanced" ? "0" : r.querySelector(".f-amt").value.trim();
-    if(!cashier && !payroll && !result && amount==="" && !r.querySelector(".f-rem").value.trim()) return;
+    const cardRes = r.querySelector(".f-cres").value;
+    const cardAmt = cardRes==="Matches" ? "0" : r.querySelector(".f-camt").value.trim();
+    if(!cashier && !payroll && !result && !cardRes && amount==="" && !r.querySelector(".f-rem").value.trim()) return;
     const remarks = r.querySelector(".f-rem").value.trim();
+    const cashVar = (!result || amount==="") ? "" : rowVariance(result, amount);
+    const cardVar = (!cardRes || cardAmt==="") ? "" : rowVariance(cardRes==="Matches"?"Balanced":cardRes, cardAmt);
     tills.push({ pos:i+1, cashier:cashier, payroll:payroll, result:result, remarks:remarks,
                  amount: amount==="" ? "" : Math.abs(num(amount)),
-                 variance: (!result || amount==="") ? "" : rowVariance(result, amount) });
+                 variance: cashVar,
+                 cardResult: cardRes, cardAmount: cardAmt==="" ? "" : Math.abs(num(cardAmt)),
+                 cardVariance: cardVar,
+                 rowNet: (cashVar===""&&cardVar==="") ? "" : (Number(cashVar||0) + Number(cardVar||0)) });
   });
   const fakes = [];
   document.querySelectorAll("#fakeRows .lrow").forEach(r => {
@@ -2289,21 +2464,74 @@ function loadDayDraft(src){
 }
 
 function filedDay(){ const sd=(STORE_DATA[STORE.code]||{})[String(DAY.day)]; return sd && sd.dayend; }
+function tillNetInfo(t){
+  const cv=Number(t.variance||0), kv=Number(t.cardVariance||0), net=cv+kv;
+  const errs=(t.result&&t.result!=="Balanced")||(t.cardResult&&t.cardResult!=="Matches");
+  return {cv:cv,kv:kv,net:net,errs:errs,zeroButErrs:(net===0&&errs)};
+}
+function tillLineHTML(t){
+  const i=tillNetInfo(t);
+  return 'Till '+t.pos+': '+esc(t.cashier||"")
+    +' \u00b7 cash '+esc(t.result||"\u2014")+(Number(t.amount)?" "+pkr(t.amount):"")
+    +' \u00b7 card '+esc(t.cardResult||"\u2014")+(Number(t.cardAmount)?" "+pkr(t.cardAmount):"")
+    +' \u00b7 <b style="color:'+(i.net<0?'#B3261E':i.net>0?'#1B6B4A':'#6b7280')+'">net '+(i.net===0?'0':(i.net>0?'+':'\u2212')+fmt(Math.abs(i.net)))+'</b>'
+    +(i.zeroButErrs?' <b style="color:#8A5A00">\u26a0 settles to 0 \u2014 errors on both sides</b>':'')
+    +(t.remarks?' ('+esc(t.remarks)+')':'');
+}
+/* Printable cashier sign-off sheet \u2014 the browser's Print dialog saves it as a PDF. */
+function printCashierSheet(){
+  const f=filedDay(); if(!f){ return; }
+  const totNet=(f.tills||[]).reduce((a,t)=>a+Number(t.variance||0)+Number(t.cardVariance||0),0);
+  const totCS=(f.tills||[]).reduce((a,t)=>a+(Number(t.variance||0)<0?-Number(t.variance):0),0);
+  const totCO=(f.tills||[]).reduce((a,t)=>a+(Number(t.variance||0)>0?Number(t.variance):0),0);
+  const totKS=(f.tills||[]).reduce((a,t)=>a+(Number(t.cardVariance||0)<0?-Number(t.cardVariance):0),0);
+  const totKO=(f.tills||[]).reduce((a,t)=>a+(Number(t.cardVariance||0)>0?Number(t.cardVariance):0),0);
+  const rows=(f.tills||[]).map(t=>{ const i=tillNetInfo(t);
+    return '<tr'+(i.zeroButErrs?' style="background:#FDF3E2"':'')+'><td>'+t.pos+'</td><td style="text-align:left">'+esc(t.cashier||"")+'</td><td>'+esc(t.payroll||"")+'</td>'
+      +'<td>'+(Number(t.variance||0)<0?fmt(-t.variance):'0')+'</td><td>'+(Number(t.variance||0)>0?fmt(t.variance):'0')+'</td>'
+      +'<td>'+(Number(t.cardVariance||0)<0?fmt(-t.cardVariance):'0')+'</td><td>'+(Number(t.cardVariance||0)>0?fmt(t.cardVariance):'0')+'</td>'
+      +'<td style="font-weight:700">'+(i.net===0?'0':(i.net>0?'+':'\u2212')+fmt(Math.abs(i.net)))+(i.zeroButErrs?' \u26a0':'')+'</td>'
+      +'<td style="text-align:left">'+esc(t.remarks||"")+'</td><td class="sig"></td></tr>'; }).join("");
+  let pa=$("printArea");
+  if(!pa){ pa=document.createElement("div"); pa.id="printArea"; document.body.appendChild(pa); }
+  pa.innerHTML=
+    '<div class="psheet">'
+    +'<h1>SRL \u2014 Sale Event Cashier Variance &amp; Sign-off Sheet</h1>'
+    +'<p class="pmeta"><b>'+esc(STORE.name)+'</b> \u00b7 '+esc(STORE.region)+' cluster \u00b7 Sale Day '+esc(String(DAY.day))+' \u00b7 '+esc(DAY.date||"")+' \u00b7 printed '+new Date().toLocaleString()+'</p>'
+    +'<table><tr><th>Till</th><th>Cashier</th><th>Payroll</th><th>Cash short</th><th>Cash excess</th><th>Card short</th><th>Card excess</th><th>Net impact</th><th>Remarks</th><th>Cashier signature</th></tr>'
+    +rows
+    +'<tr class="ptot"><td colspan="3">TOTAL \u00b7 '+(f.tills||[]).length+' tills</td><td>'+fmt(totCS)+'</td><td>'+fmt(totCO)+'</td><td>'+fmt(totKS)+'</td><td>'+fmt(totKO)+'</td><td>'+(totNet===0?'0':(totNet>0?'+':'\u2212')+fmt(Math.abs(totNet)))+'</td><td colspan="2"></td></tr>'
+    +'</table>'
+    +'<p class="pnote">\u26a0 A net of <b>0</b> with entries in the short / excess columns still means <b>errors were made on both sides</b> \u2014 shaded rows need attention even though they settle.</p>'
+    +'<p class="pnote">Cash: system '+fmt(num(f.cashInSystem)||0)+' \u00b7 declared shortage '+fmt(num(f.declaredShortage)||0)+' \u00b7 declared excess '+fmt(num(f.declaredExcess)||0)+' &nbsp;\u00b7&nbsp; Card: system '+fmt(num(f.cardInSystem)||0)+' \u00b7 settled '+fmt(num(f.cardSettled)||0)+'</p>'
+    +'<div class="psign"><div>Reconciled by (staff): '+esc(f.staffName||"")+' \u2014 signature: ______________________</div>'
+    +'<div>Store manager: '+esc(f.managerName||"")+' \u2014 signature: ______________________ &nbsp; date/time: ____________</div></div>'
+    +'<div class="pinstr">\ud83d\udea8 <b>INSTRUCTION \u2014 DO NOT SKIP:</b> every cashier listed above must sign against their own till line tonight. '
+    +'Then photograph this signed sheet and <b>send it to the Store Managers WhatsApp group</b> before closing. Unsigned sheets are treated as unfiled.</div>'
+    +'</div>';
+  window.print();
+}
 function renderDayLocked(){
   const box=$("dayLocked"); if(!box) return;
   const f=filedDay(); if(!f){ box.innerHTML=""; return; }
-  const tills=(f.tills||[]).map(t=> 'Till '+t.pos+': '+esc(t.cashier||"")+' \u00b7 '+esc(t.result||"")+(Number(t.amount)?" "+pkr(t.amount):"")+(t.remarks?" ("+esc(t.remarks)+")":"")).join('<br>');
+  const tills=(f.tills||[]).map(tillLineHTML).join('<br>');
+  const totNet=(f.tills||[]).reduce((a,t)=>a+Number(t.variance||0)+Number(t.cardVariance||0),0);
   box.innerHTML='<div class="lockhead">Day-end till variance \u00b7 saved &amp; locked</div>'
     +(f.amend?'<div class="lr-pending">\u23f3 Amendment pending cluster approval \u2014 '+esc(f.amend.reason)+(f.amend.at?' \u00b7 '+esc(f.amend.at):'')+'</div>':'')
-    +'<div class="lockrec"><div class="lr-head"><span><b>'+(f.tills||[]).length+' tills \u00b7 shortage '+pkr(f.declaredShortage||0)+' \u00b7 excess '+pkr(f.declaredExcess||0)+'</b></span>'
+    +'<div class="lockrec"><div class="lr-head"><span><b>'+(f.tills||[]).length+' tills \u00b7 shortage '+pkr(f.declaredShortage||0)+' \u00b7 excess '+pkr(f.declaredExcess||0)+' \u00b7 net '+(totNet===0?'0':(totNet>0?'+':'\u2212')+fmt(Math.abs(totNet)))+'</b></span>'
     +'<button class="lockbtn" type="button" id="dayEditBtn">🔒 Edit</button></div>'
     +'<div class="lr-body">'+(tills?'<div class="lr-sub">'+tills+'</div>':'')
     +'<div class="lr-sub">Cash: system '+pkr(f.cashInSystem||0)+' \u00b7 to '+esc(f.citVendor||"CIT")+' '+pkr(f.cashHandedOver||0)+' \u00b7 at store '+pkr(f.cashAtStore||0)+'</div>'
     +'<div class="lr-sub">Card: system '+pkr(f.cardInSystem||0)+' \u00b7 settled '+pkr(f.cardSettled||0)+'</div>'
     +((f.fakeNotes||[]).length?'<div class="lr-sub">Fake notes: '+(f.fakeNotes||[]).length+'</div>':'')
     +'<div class="lr-sub">Reconciled by '+esc(f.staffName||"")+' &amp; '+esc(f.managerName||"")+'</div>'
+    +amendDecisionHTML("dayend")
+    +'<div style="background:#FDF3E2;border:1px solid #e5c98a;border-radius:9px;padding:10px 12px;margin-top:10px;font-size:13.5px;color:#6b4a00">'
+    +'<b>\ud83d\udea8 Required tonight:</b> print the cashier variance sheet below, have <b>every cashier sign against their till line</b>, then photograph it and <b>send it to the Store Managers WhatsApp group</b>.</div>'
+    +'<button class="btn" type="button" id="dayPrintBtn" style="width:100%;margin-top:8px">\ud83d\udda8 Print cashier variance sheet (save as PDF)</button>'
     +'</div></div>';
   $("dayEditBtn").onclick=editDay;
+  $("dayPrintBtn").onclick=printCashierSheet;
 }
 function editDay(){
   const f=filedDay(); if(!f) return;
@@ -2338,8 +2566,12 @@ async function submitDay(){
     if(t.amount==="" || isNaN(t.amount)){ note($("dMsg"),"Till "+t.pos+": enter the amount.","bad"); return; }
     if(t.result!=="Balanced" && Number(t.amount) <= 0){
       note($("dMsg"),"Till "+t.pos+": a "+t.result.toLowerCase()+" till needs an amount above zero. Choose Balanced if it tallied.","bad"); return; }
-    if(t.result!=="Balanced" && !t.remarks){
-      note($("dMsg"),"Till "+t.pos+": add remarks explaining the "+t.result.toLowerCase()+".","bad"); return; }
+    if(!t.cardResult){ note($("dMsg"),"Till "+t.pos+": choose the CARD result — Matches, Short or Over.","bad"); return; }
+    if(t.cardAmount==="" || isNaN(t.cardAmount)){ note($("dMsg"),"Till "+t.pos+": enter the card amount.","bad"); return; }
+    if(t.cardResult!=="Matches" && Number(t.cardAmount) <= 0){
+      note($("dMsg"),"Till "+t.pos+": a card "+t.cardResult.toLowerCase()+" needs an amount above zero. Choose Matches if it settled cleanly.","bad"); return; }
+    if((t.result!=="Balanced" || t.cardResult!=="Matches") && !t.remarks){
+      note($("dMsg"),"Till "+t.pos+": add remarks — cash or card is off on this till"+(Number(t.rowNet)===0?" (they may net to zero, but errors were made)":"")+".","bad"); return; }
   }
   for(let i=0;i<p.fakeNotes.length;i++){
     const f = p.fakeNotes[i], n = i+1;
@@ -2358,6 +2590,10 @@ async function submitDay(){
   if(isNaN(cr.set)){ note($("dMsg"),"Enter the total settled on card machines.","bad"); return; }
   if(cr.diff !== 0 && !p.cardRemarks){
     note($("dMsg"),"Card sales and settlement differ by "+fmt(cr.diff)+". Add remarks on the card difference.","bad"); return; }
+  /* the card variance attributed to cashiers must add up to the machines' difference */
+  const rowCardNet = c.cardExcess - c.cardShort;
+  if(rowCardNet !== cr.diff){
+    note($("dMsg"),"The till lines' card variance nets to "+fmt(rowCardNet)+" but the machines settled "+fmt(cr.diff)+" against system. Fix the card figures on the till lines so they account for the whole difference.","bad"); return; }
   if(p.declaredShortage===""){ note($("dMsg"),"Enter the total cash shortage. Use 0 if there was none.","bad"); return; }
   if(p.declaredExcess===""){ note($("dMsg"),"Enter the total cash excess. Use 0 if there was none.","bad"); return; }
   const ds = Math.abs(num(p.declaredShortage)), de = Math.abs(num(p.declaredExcess));
@@ -2375,6 +2611,10 @@ async function submitDay(){
   await send($("dSubmit"), $("dMsg"), { action:"dayend", payload:p }, () => {
     note($("dMsg"),"Day-end submitted. "+p.tills.length+" till lines recorded for Day "+p.day+".","ok");
     try{ localStorage.removeItem(dayKey()); }catch(e){}
+    /* store the record locally so the locked box (and print sheet) appear immediately */
+    STORE_DATA[STORE.code]=STORE_DATA[STORE.code]||{};
+    STORE_DATA[STORE.code][String(DAY.day)]=STORE_DATA[STORE.code][String(DAY.day)]||{};
+    STORE_DATA[STORE.code][String(DAY.day)].dayend = p;
     $("dDraft").textContent = ""; renderDayLocked(); dayFormState();
   });
 }
@@ -2394,13 +2634,14 @@ function startBank(){
   $("bBack").onclick = () => show("menu");
   $("bSubmit").onclick = submitBank;
   $("bMsg").innerHTML = "";
-  loadBankDraft();
   /* the deposit belongs to the day you opened — lock it to that day's cash */
   $("bDay").value = String(DAY.day);
   $("bDay").disabled = true;
+  loadBankDraft();   /* AFTER the day is set, so the right day's draft loads */
   boundDate();
   show("bankScreen");
-  if(CONFIG.PREVIEW_MODE){ renderBankLocked(); bankFormState(); } else loadStatus($("bStatusBox"), String(DAY.day));
+  renderBankLocked(); bankFormState();
+  if(!CONFIG.PREVIEW_MODE && !bankFiled()) loadStatus($("bStatusBox"), String(DAY.day));
 }
 
 /* The deposit date can be picked, but only inside a sensible window:
@@ -2675,7 +2916,8 @@ function startShift(which){
   $("sMsg").innerHTML = "";
   loadShiftDraft();
   show("shiftScreen");
-  if(CONFIG.PREVIEW_MODE) renderShiftLocked(); else loadStatus($("sStatusBox"));
+  renderShiftLocked(); if(typeof shiftFormState==="function") shiftFormState();
+  if(!CONFIG.PREVIEW_MODE && !shiftFiled()) loadStatus($("sStatusBox"));
   shiftFormState();
 }
 
@@ -2853,6 +3095,7 @@ function renderShiftLocked(){
       +(pp["f-scontact"]?' · '+esc(pp["f-scontact"]):'')
       +(pp["f-sshift"]?' · '+esc(pp["f-sshift"])+' shift':'')
       +(pp["f-sin"]?' · in '+fmt12(pp["f-sin"]):'')+(pp["f-sout"]?' out '+fmt12(pp["f-sout"]):'')
+      +((pp["f-sin"]&&pp["f-sout"])?' · <b>'+hoursWorked(pp["f-sin"],pp["f-sout"])+'</b>':'')
       +(fl.length?' '+flagChips(fl):'')+'</div>';
   }).join("");
   box.innerHTML='<div class="lockhead">'+esc(m.title)+' · saved &amp; locked</div>'
@@ -2936,11 +3179,7 @@ async function loadPerfPeople(){
   }
   note($("rStatusBox"), "Loading the people you filed today…", "info");
   try{
-    const url = CONFIG.API_URL + "?action=people&store=" + encodeURIComponent(STORE.code)
-              + "&event=" + encodeURIComponent(DAY.event) + "&day=" + encodeURIComponent(DAY.day)
-              + "&code=" + encodeURIComponent(ACCESS_CODE);
-    const res = await fetch(url);
-    const o = await res.json();
+    const o = await apiRead({action:"people", event:DAY.event, day:String(DAY.day)});
     if(!o.ok){ note($("rStatusBox"),"Could not load today's attendance. Try again when you have signal.","bad"); return; }
     const people = o.people || [];
     if(!people.length){
@@ -3091,11 +3330,7 @@ async function loadSpentBefore(){
     budgetTally(); budgetFormState(); return; }
   note($("gStatusBox"), "Checking what has already been spent this event…", "info");
   try{
-    const url = CONFIG.API_URL + "?action=budget&store=" + encodeURIComponent(STORE.code)
-              + "&event=" + encodeURIComponent(DAY.event) + "&day=" + encodeURIComponent(DAY.day)
-              + "&code=" + encodeURIComponent(ACCESS_CODE);
-    const res = await fetch(url);
-    const o = await res.json();
+    const o = await apiRead({action:"budget", event:DAY.event, day:String(DAY.day)});
     if(!o.ok){ note($("gStatusBox"), "Could not read earlier days. The remaining figure below may be incomplete.", "bad"); return; }
     SPENT_BEFORE = Number(o.spentOtherDays || 0);
     SPENT_KNOWN = true;
@@ -3210,7 +3445,8 @@ function renderBudgetLocked(){
    +'<button class="lockbtn" type="button" id="budgetEditBtn">🔒 Edit</button></div>'
    +'<div class="lr-body">'+(cats?'<div class="lr-lines">'+cats+'</div>':'')
    +(over&&f.overspendReason?'<div class="lr-sub">Overspend reason: '+esc(f.overspendReason)+'</div>':'')
-   +(f.notes?'<div class="lr-sub">Notes: '+esc(f.notes)+'</div>':'')+'</div></div>';
+   +(f.notes?'<div class="lr-sub">Notes: '+esc(f.notes)+'</div>':'')
+   +amendDecisionHTML("budget")+'</div></div>';
   $("budgetEditBtn").onclick=editBudget;
 }
 function editBudget(){
@@ -3274,6 +3510,469 @@ async function send(btn, msgEl, body, onOk){
   }
   btn.disabled = false; btn.textContent = label;
 }
+
+
+/* ==================== SALE-DAY PREPARATION (evening before, for tomorrow) ==================== */
+const PREP_GROUPS=[["ho","Head office staff"],["jan","Janitorial staff"],["guard","Security guards"],["sale","Sale staff"],["supp","Supporting managers"]];
+let PREP_TGT=null, PREP_REC=null;
+function prepAddDays(iso,n){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); const q=x=>String(x).padStart(2,"0"); return d.getFullYear()+"-"+q(d.getMonth()+1)+"-"+q(d.getDate()); }
+function prepTarget(){
+  const days=((CONFIG.EVENTS[0]||{}).days)||[]; const bd=SERVER.date; if(!bd) return null;
+  for(const d of days){ if(bd===prepAddDays(d.date,-1)) return {day:d.day,date:d.date,late:false}; }
+  for(const d of days){ if(bd===d.date) return {day:d.day,date:d.date,late:true}; }
+  return null;
+}
+function prepKey(){ return "srl-prep:"+STORE.code+":"+DAY.event+":"+(PREP_TGT?PREP_TGT.day:""); }
+async function updatePrepCard(){
+  PREP_TGT=prepTarget();
+  const card=$("prepEntryCard"); if(!card) return;
+  if(!PREP_TGT){
+    /* server date may not have arrived yet — retry briefly, then give up */
+    if(!SERVER.date && (updatePrepCard._n=(updatePrepCard._n||0)+1)<10) setTimeout(updatePrepCard,700);
+    card.classList.add("hidden"); return; }
+  updatePrepCard._n=0;
+  card.classList.remove("hidden");
+  try{ const r=await apiRead({action:"status",event:DAY.event,day:String(PREP_TGT.day)});
+    if(r&&r.ok) PREP_REC=(r.records&&r.records.prep)||null; }catch(e){}
+  const st=PREP_REC&&PREP_REC.prepStatus;
+  const hint=$("prepCardHint");
+  const lbl="Day "+PREP_TGT.day+" ("+PREP_TGT.date+")";
+  if(!PREP_REC) hint.innerHTML=PREP_TGT.late
+    ? '<b style="color:#B3261E">⏰ Overdue — last night’s preparation for '+lbl+' was not filed. File it now.</b>'
+    : '<b style="color:var(--sapphire)">Due tonight from 5 PM</b> — checklist for '+lbl+'.';
+  else if(st==="sentback") hint.innerHTML='<b style="color:#B3261E">↩ Sent back by your cluster manager — open, fix and resubmit.</b>';
+  else if(st==="approved") hint.innerHTML='<b style="color:#1B6B4A">✓ Approved for '+lbl+'.</b>';
+  else hint.innerHTML='Submitted for '+lbl+' — awaiting cluster review.';
+}
+function prepYN(id,lab,extra){ return '<div><span class="lab req">'+lab+'</span><select id="'+id+'"><option value="">Select</option><option>Yes</option><option>No</option>'+(extra?'<option>Not required</option>':'')+'</select></div>'; }
+function prepPanel(pid,title,inner){ return '<div id="'+pid+'" style="border:1px solid #c9d6ee;border-radius:12px;background:#f4f7fc;padding:12px 14px;margin:0 0 14px;scroll-margin-top:70px">'
+  +'<div style="font-weight:800;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--sapphire);margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid #dbe4f3">'+title+'</div>'+inner+'</div>'; }
+function prepAddBtn(id,label){ return '<button type="button" id="'+id+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px dashed #9db8e0;color:var(--sapphire);border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">＋ '+label+'</button>'; }
+function prepSlotRow(g,i,T,hidden){
+  return '<div class="grid2 ppSlot" id="ppSlotRow'+i+'_'+g+'"'+(hidden?' style="display:none"':'')+'>'
+    +'<div><span class="lab'+(i===1?' req':'')+'">'+(i===1?'How many starting':'…and how many more')+'</span><input type="text" class="num" id="ppCnt'+i+'_'+g+'" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab'+(i===1?' req':'')+'">'+(i===1?'Start time':'Their start time')+'</span><select id="ppTime'+i+'_'+g+'" class="timesel">'+T+'</select></div></div>';
+}
+const PREP_MOVES=["Packed","Awaiting collection","Dispatched"];
+function prepStoreOpts(){
+  const names=Object.keys(IT_REPS).filter(n=>n!==STORE.name).sort();
+  return '<option value="">Select the receiving store</option>'+names.map(n=>'<option>'+esc(n)+'</option>').join("");
+}
+function prepToBlock(i,hidden){
+  return '<div id="ppToBlock'+i+'"'+(hidden?' style="display:none"':'')+' >'
+    +'<div style="border:1px solid #dbe4f3;border-radius:10px;background:#fff;padding:10px 12px;margin:8px 0 0">'
+    +'<div style="font-weight:700;font-size:13.5px;margin-bottom:8px">Transfer out #'+i+'</div>'
+    +'<div class="grid2">'
+    +'<div><span class="lab">From store</span><input type="text" class="locked" id="ppToFrom'+i+'" readonly tabindex="-1"></div>'
+    +'<div><span class="lab req">To store (receiving)</span><select id="ppToDest'+i+'">'+prepStoreOpts()+'</select></div>'
+    +'<div><span class="lab req">Number of units</span><input type="text" class="num" id="ppToUnits'+i+'" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab req">Total discounted value (PKR)</span><input type="text" class="num" id="ppToValue'+i+'" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab req">Stock movement status</span><select id="ppToMove'+i+'"><option value="">Select</option>'+PREP_MOVES.map(m=>'<option>'+m+'</option>').join("")+'</select></div>'
+    +'</div>'
+    +'<div id="ppToSysWrap'+i+'" class="hidden" style="margin-top:8px"><div class="grid2">'+prepYN("ppToSys"+i,"Physically shipped — updated in the system?")+'</div></div>'
+    +'<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #dbe4f3"><div class="grid2">'
+    +prepYN("ppToGen"+i,"Has the TO been SYSTEMATICALLY generated?")+'</div>'
+    +'<div id="ppToNumWrap'+i+'" class="hidden" style="margin-top:8px"><div class="grid2"><div><span class="lab req">TO number</span><input type="text" id="ppToNum'+i+'" placeholder="TO-…"></div></div></div>'
+    +'<div id="ppToNo'+i+'" class="hidden" style="margin-top:8px"><div class="grid2">'
+      +prepYN("ppToEmail"+i,"Email routed ON PRIORITY to get it generated?")+'</div>'
+      +'<p class="meta" style="margin:6px 0 0;color:#8A5A00"><b>Follow-up:</b> once generated, come back, set this to Yes, enter the TO number and resubmit — the cluster manager sees this as pending until then.</p></div>'
+    +'</div>'
+    +'</div></div>';
+}
+function startPrep(){
+  if(!PREP_TGT){ return; }
+  show("prepScreen");
+  $("prepHead").textContent=STORE.name+" · preparing Day "+PREP_TGT.day+" — "+PREP_TGT.date+(PREP_TGT.late?" · ⏰ LATE":"");
+  $("prepBack").onclick=()=>show("menu");
+  const st=PREP_REC&&PREP_REC.prepStatus;
+  const box=$("prepStatusBox");
+  if(st==="approved"){
+    box.innerHTML='<div class="card"><div class="card-body"><div class="cl-signed">✓ <b>Preparation approved</b> by '+esc(PREP_REC.prepBy||"cluster manager")+(PREP_REC.prepAt?' · '+esc(PREP_REC.prepAt):'')+'.'+(PREP_REC.prepRemarks?'<br><b>Remarks:</b> '+esc(PREP_REC.prepRemarks):'')+'</div></div></div>';
+    $("prepFormWrap").classList.add("hidden"); prepRenderForm(); return;
+  }
+  box.innerHTML = st==="sentback"
+    ? '<div class="card"><div class="card-body"><div style="background:#FBEAE9;border:1px solid #e5b8b5;border-radius:9px;padding:10px 12px;color:#7f1d1d"><b>↩ Sent back by '+esc(PREP_REC.prepBy||"cluster manager")+'</b>'+(PREP_REC.prepAt?' · '+esc(PREP_REC.prepAt):'')+'<br><b>Fix this, then resubmit:</b> '+esc(PREP_REC.prepRemarks||"")+'</div></div></div>'
+    : (st==="submitted"?'<div class="card"><div class="card-body"><span class="meta">Submitted — awaiting cluster review. You can still correct and resubmit until it is approved.</span></div></div>':"");
+  $("prepFormWrap").classList.remove("hidden");
+  prepRenderForm();
+}
+function prepRenderForm(){
+  const b=$("prepBody"); const T=timeOpts();
+  /* sticky jump navigation between the five sections */
+  const navBtn=(pid,lab)=>'<button type="button" onclick="document.getElementById(\''+pid+'\').scrollIntoView({behavior:\'smooth\'})" style="border:1px solid #c9d6ee;background:#fff;color:var(--sapphire);border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">'+lab+'</button>';
+  let h='<div style="position:sticky;top:34px;z-index:5;background:#f6f7f9;padding:8px 0;margin:-4px 0 10px;display:flex;gap:7px;overflow-x:auto">'
+    +navBtn("ppA","🏷 A · Signage")+navBtn("ppB","👥 B · Staffing")+navBtn("ppC","🧹 C · Housekeeping")+navBtn("ppD","🧵 D · Floor & stock")+navBtn("ppE","🔁 E · Transfer orders")+'</div>';
+  h+=prepPanel("ppA",'🏷 A · Merchandise &amp; signage',
+    '<div class="grid2">'+prepYN("ppNos","All NOS verified, acknowledged & sealed")
+    +prepYN("ppSign","All correct discount signages up")
+    +prepYN("ppWasnow","“Was / Now” pasted clearly on women’s unstitched")
+    +prepYN("ppChange","Change arranged & aligned",true)+'</div>');
+  let staff='';
+  PREP_GROUPS.forEach(g=>{
+    staff+='<div style="border:1px solid #dbe4f3;border-radius:10px;background:#fff;padding:10px 12px;margin:0 0 10px">'
+      +'<div style="font-weight:700;font-size:13.5px;margin-bottom:8px">'+g[1]+'</div>'
+      +'<div class="grid2">'+prepYN("ppInf_"+g[0],"Informed of tomorrow’s shift timings?")+'</div>'
+      +'<div id="ppSlots_'+g[0]+'">'+prepSlotRow(g[0],1,T,false)+prepSlotRow(g[0],2,T,true)+prepSlotRow(g[0],3,T,true)+'</div>'
+      +prepAddBtn("ppMore_"+g[0],"add another start time (different shift)")
+      +'</div>';
+  });
+  staff+='<div style="border:1px solid #dbe4f3;border-radius:10px;background:#fff;padding:10px 12px">'
+    +'<div style="font-weight:700;font-size:13.5px;margin-bottom:8px">Morning manager — opening tomorrow</div>'
+    +'<div class="grid2"><div><span class="lab req">Name</span><input type="text" id="ppMgrName" placeholder="Full name"></div>'
+    +'<div><span class="lab req">Opening the store at</span><select id="ppMgrTime" class="timesel">'+T+'</select></div></div></div>';
+  h+=prepPanel("ppB",'👥 B · Tomorrow’s staffing — inform every group, add each different start time',staff);
+  h+=prepPanel("ppC",'🧹 C · Housekeeping &amp; fitting rooms',
+    '<div class="grid2">'+prepYN("ppOutside","Outside store clean")+prepYN("ppStock","Stockroom rearranged & cleaned")
+    +'<div><span class="lab req">Fitting rooms — total</span><input type="text" class="num" id="ppFrTot" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab req">Fitting rooms fully operational</span><input type="text" class="num" id="ppFrOk" inputmode="numeric" placeholder="0"></div></div>'
+    +'<div id="ppFrWhy" class="hidden" style="margin-top:8px"><span class="lab req">Why are some fitting rooms not operational?</span><input type="text" id="ppFrReason" placeholder="Reason"></div>');
+  h+=prepPanel("ppD",'🧵 D · Floor &amp; stock (DDAR)',
+    '<div class="grid2">'+prepYN("ppFloor","Floor filled as per DDAR recommendation")
+    +prepYN("ppUnst","Unstitched designs changed per availability & DDAR")
+    +prepYN("ppStit","Stitched designs changed per availability & DDAR")
+    +prepYN("ppBackup","Unstitched BACK-UP aligned fully")
+    +prepYN("ppRack","Any EMPTY unstitched rack on the floor?")+'</div>'
+    +'<p class="meta" style="margin:6px 0 0">The back-up question is due by <b>11:59 PM tonight</b> — after midnight it is accepted until 6 AM but marked ⏰.</p>'
+    +'<div id="ppRackWrap" class="hidden" style="margin-top:8px"><div class="grid2"><div><span class="lab req">Reason for the empty rack</span><input type="text" id="ppRackReason" placeholder="Reason"></div>'
+    +prepYN("ppRackApp","Is it approved by your cluster manager?")+'</div></div>');
+  h+=prepPanel("ppE",'🔁 E · Transfer orders (TO) — request → generation → stock movement',
+    '<div class="grid2">'+prepYN("ppToNeeded","Any stock to request out (TO needed)?")+'</div>'
+    +'<div id="ppToAll" class="hidden">'+prepToBlock(1,false)+prepToBlock(2,true)+prepToBlock(3,true)
+    +prepAddBtn("ppToMore","add another TO")+'</div>');
+  h+='<div style="margin-top:4px"><span class="lab">Notes (optional)</span><input type="text" id="ppNotes" placeholder="Anything the cluster manager should know"></div>';
+  b.innerHTML=h;
+  for(let i=1;i<=3;i++){ const f=$("ppToFrom"+i); if(f) f.value=STORE.name; }
+  PREP_GROUPS.forEach(g=>{ $("ppMore_"+g[0]).onclick=()=>{ for(let i=2;i<=3;i++){ const row=$("ppSlotRow"+i+"_"+g[0]); if(row.style.display==="none"){ row.style.display=""; break; } } }; });
+  $("ppToMore").onclick=()=>{ for(let i=2;i<=3;i++){ const bl=$("ppToBlock"+i); if(bl.style.display==="none"){ bl.style.display=""; break; } } };
+  const wire=()=>{ prepDraftSave();
+    $("ppRackWrap").classList.toggle("hidden",$("ppRack").value!=="Yes");
+    $("ppToAll").classList.toggle("hidden",$("ppToNeeded").value!=="Yes");
+    for(let i=1;i<=3;i++){
+      const gen=$("ppToGen"+i).value;
+      $("ppToNumWrap"+i).classList.toggle("hidden",gen!=="Yes");
+      $("ppToNo"+i).classList.toggle("hidden",gen!=="No");
+      $("ppToSysWrap"+i).classList.toggle("hidden",$("ppToMove"+i).value!=="Dispatched");
+    }
+    const t=num($("ppFrTot").value),o=num($("ppFrOk").value);
+    $("ppFrWhy").classList.toggle("hidden",!(isFinite(t)&&isFinite(o)&&o<t)); };
+  b.querySelectorAll("input,select").forEach(el=>{ el.addEventListener("input",wire); el.addEventListener("change",wire); });
+  let d=null;
+  if(PREP_REC&&PREP_REC.answers) d=PREP_REC.answers;
+  else { try{ d=JSON.parse(localStorage.getItem(prepKey())||"null"); }catch(e){} }
+  if(d){ Object.keys(d).forEach(k=>{ const el=$("pp"+k); if(el&&!el.readOnly) el.value=d[k]; });
+    PREP_GROUPS.forEach(g=>{ for(let i=2;i<=3;i++){ if(d["Cnt"+i+"_"+g[0]]||d["Time"+i+"_"+g[0]]) $("ppSlotRow"+i+"_"+g[0]).style.display=""; } });
+    for(let i=2;i<=3;i++){ if(d["ToGen"+i]) $("ppToBlock"+i).style.display=""; } }
+  wire();
+  $("prepSubmit").onclick=submitPrep;
+}
+function prepAnswers(){
+  const out={}; document.querySelectorAll("#prepBody input,#prepBody select").forEach(el=>{ if(el.id&&el.id.slice(0,2)==="pp") out[el.id.slice(2)]=el.value.trim(); });
+  return out;
+}
+function prepDraftSave(){ try{ localStorage.setItem(prepKey(),JSON.stringify(prepAnswers())); }catch(e){} }
+async function submitPrep(){
+  const a=prepAnswers(); const M=$("prepMsg");
+  const need=(id,lab)=>{ if(!a[id]){ note(M,'Answer: "'+lab+'".',"bad"); return true; } return false; };
+  if(need("Nos","All NOS verified, acknowledged & sealed")||need("Sign","Discount signages up")||need("Wasnow","Was / Now pasted")||need("Change","Change arranged & aligned")) return;
+  for(const g of PREP_GROUPS){
+    if(need("Inf_"+g[0],g[1]+" informed")) return;
+    if(a["Inf_"+g[0]]==="Yes"){
+      if(a["Cnt1_"+g[0]]===""||isNaN(num(a["Cnt1_"+g[0]]))||num(a["Cnt1_"+g[0]])<1){ note(M,g[1]+": enter how many are starting tomorrow.","bad"); return; }
+      if(!a["Time1_"+g[0]]){ note(M,g[1]+": pick the start time.","bad"); return; }
+      for(let i=2;i<=3;i++){
+        const c=a["Cnt"+i+"_"+g[0]], t=a["Time"+i+"_"+g[0]];
+        if((c!==""&&!t)||(c===""&&t)){ note(M,g[1]+": start-time line "+i+" needs BOTH a count and a time.","bad"); return; }
+        if(c!==""&&(isNaN(num(c))||num(c)<1)){ note(M,g[1]+": start-time line "+i+" count must be 1 or more.","bad"); return; }
+      }
+    }
+  }
+  if(!a.MgrName){ note(M,"Enter the morning manager opening tomorrow.","bad"); return; }
+  if(!a.MgrTime){ note(M,"Pick the morning manager’s opening time.","bad"); return; }
+  if(need("Outside","Outside store clean")||need("Stock","Stockroom rearranged & cleaned")) return;
+  if(a.FrTot===""||isNaN(num(a.FrTot))){ note(M,"Enter the total number of fitting rooms.","bad"); return; }
+  if(a.FrOk===""||isNaN(num(a.FrOk))){ note(M,"Enter how many fitting rooms are fully operational.","bad"); return; }
+  if(num(a.FrOk)>num(a.FrTot)){ note(M,"Operational fitting rooms cannot exceed the total.","bad"); return; }
+  if(num(a.FrOk)<num(a.FrTot)&&!a.FrReason){ note(M,"Say why some fitting rooms are not operational.","bad"); return; }
+  if(need("Floor","Floor filled per DDAR")||need("Unst","Unstitched changed per DDAR")||need("Stit","Stitched changed per DDAR")||need("Backup","Unstitched back-up aligned fully")||need("Rack","Any empty unstitched rack?")) return;
+  if(a.Rack==="Yes"){
+    if(!a.RackReason){ note(M,"Give the reason for the empty unstitched rack.","bad"); return; }
+    if(!a.RackApp){ note(M,"Say whether the empty rack is approved by your cluster manager.","bad"); return; }
+  }
+  if(need("ToNeeded","Any stock to request out (TO needed)?")) return;
+  if(a.ToNeeded==="Yes"){
+    for(let i=1;i<=3;i++){
+      const active = i===1 || a["ToDest"+i] || a["ToUnits"+i] || a["ToValue"+i] || a["ToMove"+i] || a["ToGen"+i] || a["ToNum"+i];
+      if(!active) continue;
+      /* the transfer details are ALWAYS required — generation is a separate, final question */
+      if(!a["ToDest"+i]){ note(M,"Transfer out #"+i+": choose the receiving store.","bad"); return; }
+      if(a["ToUnits"+i]===""||isNaN(num(a["ToUnits"+i]))||num(a["ToUnits"+i])<1){ note(M,"Transfer out #"+i+": enter the number of units.","bad"); return; }
+      if(a["ToValue"+i]===""||isNaN(num(a["ToValue"+i]))||num(a["ToValue"+i])<=0){ note(M,"Transfer out #"+i+": enter the total discounted value.","bad"); return; }
+      if(!a["ToMove"+i]){ note(M,"Transfer out #"+i+": choose the stock movement status — packed, awaiting collection or dispatched.","bad"); return; }
+      if(a["ToMove"+i]==="Dispatched"&&!a["ToSys"+i]){ note(M,"Transfer out #"+i+" is dispatched — say whether it is updated in the system.","bad"); return; }
+      if(!a["ToGen"+i]){ note(M,"Transfer out #"+i+": say whether the TO has been SYSTEMATICALLY generated.","bad"); return; }
+      if(a["ToGen"+i]==="Yes"&&!a["ToNum"+i]){ note(M,"Transfer out #"+i+": enter the TO number.","bad"); return; }
+      if(a["ToGen"+i]==="No"&&!a["ToEmail"+i]){ note(M,"Transfer out #"+i+": say whether the priority email to generate it has been routed.","bad"); return; }
+    }
+  }
+  const p={ event:DAY.event, day:String(PREP_TGT.day), forDate:PREP_TGT.date, answers:a,
+    enteredBy:a.MgrName, loggedAt:(SERVER.date||"")+" "+(SERVER.time||"") };
+  await send($("prepSubmit"), M, { action:"prep", payload:p }, ()=>{
+    note(M,"Preparation for Day "+PREP_TGT.day+" submitted — your cluster manager will review it.","ok");
+    PREP_REC=Object.assign({},p,{prepStatus:"submitted"});
+    try{ localStorage.removeItem(prepKey()); }catch(e){}
+    updatePrepCard(); startPrep();
+  });
+}
+/* hook: refresh the card whenever the menu is shown */
+const __showOrig=show;
+show=function(id){ __showOrig(id); if(id==="menu"&&typeof STORE!=="undefined"&&STORE&&STORE.code) updatePrepCard(); };
+document.addEventListener("DOMContentLoaded",function(){ const b=$("prepOpenBtn"); if(b) b.onclick=startPrep; });
+if($("prepOpenBtn")) $("prepOpenBtn").onclick=startPrep;
+
+
+/* ==================== POST-SALE WIND-DOWN (after the last sale day) ==================== */
+const POST_GROUPS=[["sale","Sale staff"],["guard","Security guards"],["jan","Janitorial staff"]];
+let POST_REC=null, POST_INFO=null;
+function postWindow(){
+  const days=((CONFIG.EVENTS[0]||{}).days)||[]; if(!days.length||!SERVER.date) return null;
+  const last=days[days.length-1].date;
+  if(SERVER.date<last||SERVER.date>prepAddDays(last,2)) return null;
+  return {last:last,late:SERVER.date>=prepAddDays(last,1)};
+}
+function postKey(){ return "srl-post:"+STORE.code+":"+DAY.event; }
+async function updatePostCard(){
+  const card=$("postEntryCard"); if(!card) return;
+  const win=postWindow();
+  if(!win){ if(!SERVER.date&&(updatePostCard._n=(updatePostCard._n||0)+1)<10) setTimeout(updatePostCard,700);
+    card.classList.add("hidden"); return; }
+  updatePostCard._n=0; card.classList.remove("hidden");
+  try{ const r=await apiRead({action:"status",event:DAY.event,day:"P"});
+    if(r&&r.ok) POST_REC=(r.records&&r.records.post)||null; }catch(e){}
+  const st=POST_REC&&POST_REC.prepStatus, hint=$("postCardHint");
+  if(!POST_REC) hint.innerHTML=win.late
+    ? '<b style="color:#B3261E">⏰ Overdue — the sale has ended, file the final confirmation now.</b>'
+    : '<b style="color:var(--sapphire)">Sale ends today — file from 5 PM.</b>';
+  else if(st==="sentback") hint.innerHTML='<b style="color:#B3261E">↩ Sent back by your cluster manager — open, fix and resubmit.</b>';
+  else if(st==="approved") hint.innerHTML='<b style="color:#1B6B4A">✓ Approved — sale event closed for your store.</b>';
+  else hint.innerHTML='Submitted — awaiting cluster review.';
+}
+async function startPost(){
+  const win=postWindow(); if(!win) return;
+  show("postScreen");
+  $("postHead").textContent=STORE.name+" · sale ended "+win.last+(win.late?" · ⏰ LATE":"");
+  $("postBack").onclick=()=>show("menu");
+  try{ const r=await apiRead({action:"postinfo",event:DAY.event}); if(r&&r.ok) POST_INFO=r; }catch(e){}
+  const st=POST_REC&&POST_REC.prepStatus, box=$("postStatusBox");
+  if(st==="approved"){
+    box.innerHTML='<div class="card"><div class="card-body"><div class="cl-signed">✓ <b>Post-sale confirmation approved</b> by '+esc(POST_REC.prepBy||"cluster manager")+(POST_REC.prepAt?' · '+esc(POST_REC.prepAt):'')+'.'+(POST_REC.prepRemarks?'<br><b>Remarks:</b> '+esc(POST_REC.prepRemarks):'')+'</div></div></div>';
+    $("postFormWrap").classList.add("hidden"); return;
+  }
+  box.innerHTML = st==="sentback"
+    ? '<div class="card"><div class="card-body"><div style="background:#FBEAE9;border:1px solid #e5b8b5;border-radius:9px;padding:10px 12px;color:#7f1d1d"><b>↩ Sent back by '+esc(POST_REC.prepBy||"cluster manager")+'</b>'+(POST_REC.prepAt?' · '+esc(POST_REC.prepAt):'')+'<br><b>Fix this, then resubmit:</b> '+esc(POST_REC.prepRemarks||"")+'</div></div></div>'
+    : (st==="submitted"?'<div class="card"><div class="card-body"><span class="meta">Submitted — awaiting cluster review. You can correct and resubmit until approved.</span></div></div>':"");
+  $("postFormWrap").classList.remove("hidden");
+  postRenderForm();
+}
+function postRenderForm(){
+  const b=$("postBody"); const T=timeOpts();
+  const info=POST_INFO||{recoverable:0,byCashier:[],openIncidents:[]};
+  const navBtn=(pid,lab)=>'<button type="button" onclick="document.getElementById(\''+pid+'\').scrollIntoView({behavior:\'smooth\'})" style="border:1px solid #c9d6ee;background:#fff;color:var(--sapphire);border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">'+lab+'</button>';
+  let h='<div style="position:sticky;top:34px;z-index:5;background:#f6f7f9;padding:8px 0;margin:-4px 0 10px;display:flex;gap:7px;overflow-x:auto">'
+    +navBtn("psA","💰 A · Cash recovery")+navBtn("psA2","🧾 A2 · Fake notes")+navBtn("psB","🏷 B · Back to normal")+navBtn("psC","🚪 C · Fitting rooms")+navBtn("psD","🚨 D · Incidents & racks")+navBtn("psE","👥 E · Next day")+navBtn("psF","🏦 F · Float return")+'</div>';
+  /* A — cash recovery, reconciled against the cashier view */
+  const cashList=(info.byCashier||[]).map(c=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0;border-bottom:1px dotted #e5e7eb"><span>'+esc(c.cashier)+' ('+esc(c.payroll)+')</span><b style="color:#B3261E">PKR '+fmt(c.owed)+'</b></div>').join("");
+  h+=prepPanel("psA",'💰 A · Cash recovery — reconciled against your cashier records',
+    '<div style="background:#E8EFF8;border:1px solid #c9d6ee;border-radius:9px;padding:9px 12px;margin-bottom:10px;font-size:13px"><b>Recoverable from cashiers this event: PKR '+fmt(info.recoverable||0)+'</b> — each cashier\'s own cash + card net, shortages only (an excess at one till never cancels a shortage at another).'+(cashList?'<div style="margin-top:6px">'+cashList+'</div>':' No cashier shortages — nothing to recover.')+'</div>'
+    +'<div class="grid2"><div><span class="lab req">Total cash shortage RECOVERED from staff (PKR)</span><input type="text" class="num" id="psRecovered" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab">Still pending (auto)</span><input type="text" class="locked" id="psPending" readonly tabindex="-1"></div></div>'
+    +'<div id="psPendWrap" class="hidden" style="margin-top:8px"><p class="meta" style="margin:0 0 6px;color:#8A5A00"><b>Pending recovery — one line per staff member (must add up to the pending amount):</b></p><div id="psPendRows"></div>'
+    +prepAddBtn("psPendMore","add another staff member")+'</div>');
+  /* A2 — fake notes: till-caught (tagged → recoverable) vs bank-found (untagged → treatment) */
+  const fnList=(info.fnTill||[]).map(f=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0;border-bottom:1px dotted #e5e7eb"><span>'+esc(f.employee)+' ('+esc(f.payroll)+') · '+f.notes+' note'+(f.notes>1?'s':'')+'</span><b style="color:#B3261E">PKR '+fmt(f.value)+'</b></div>').join("");
+  h+=prepPanel("psA2",'🧾 A2 · Fake notes — recovery &amp; treatment',
+    '<div style="background:#E8EFF8;border:1px solid #c9d6ee;border-radius:9px;padding:9px 12px;margin-bottom:10px;font-size:13px">'
+    +'<b>Caught at the till (tagged to staff): PKR '+fmt(info.fnTillTotal||0)+'</b> — recoverable from the employee who accepted each note.'
+    +(fnList?'<div style="margin-top:6px">'+fnList+'</div>':' None caught at tills. ✓')
+    +'<div style="margin-top:8px"><b>Found by the BANK in deposits: '+(info.fnBankCount||0)+' note'+((info.fnBankCount||0)===1?'':'s')+' · PKR '+fmt(info.fnBankValue||0)+'</b> — cannot be tagged to any employee; treated at store level.</div></div>'
+    +((info.fnTillTotal||0)>0?'<div class="grid2"><div><span class="lab req">Recovered from the staff who accepted them (PKR)</span><input type="text" class="num" id="psFnRecovered" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab">Still pending (auto)</span><input type="text" class="locked" id="psFnPending" readonly tabindex="-1"></div></div>'
+    +'<div id="psFnWhy" class="hidden" style="margin-top:8px"><span class="lab req">Who still owes, and the recovery plan?</span><input type="text" id="psFnPlan" placeholder="e.g. Sana PKR 1,000 — salary deduction 10 Sep"></div>':'')
+    +((info.fnBankCount||0)>0?'<div class="grid2" style="margin-top:8px"><div><span class="lab req">Bank-found notes — treatment</span><select id="psFnBank"><option value="">Select</option><option>Confiscated by bank — booked as store loss</option><option>Under investigation with the bank</option></select></div>'
+    +'<div><span class="lab">Reference / remarks</span><input type="text" id="psFnBankRef" placeholder="Bank memo / report reference"></div></div>':''));
+  /* B — back to normal */
+  h+=prepPanel("psB",'🏷 B · Store set back to normal',
+    '<div class="grid2">'+prepYN("psSign","Sale signages corrected / removed")
+    +prepYN("psCounter","Cash counter clean and clear")
+    +prepYN("psFloor","Floor set back to normal")
+    +prepYN("psClean","Outside, inside & stockroom cleaning and clearance done")
+    +prepYN("psTills","Extra tills & queue poles packed and stored properly")+'</div>');
+  /* C — fitting rooms */
+  h+=prepPanel("psC",'🚪 C · Fitting rooms',
+    '<div class="grid2"><div><span class="lab req">Fitting rooms — total</span><input type="text" class="num" id="psFrTot" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab req">Fully operational</span><input type="text" class="num" id="psFrOk" inputmode="numeric" placeholder="0"></div></div>'
+    +'<div id="psFrWhy" class="hidden" style="margin-top:8px"><span class="lab req">Why are some not operational?</span><input type="text" id="psFrReason" placeholder="Reason"></div>');
+  /* D — incidents (real list) + racks */
+  let incHtml;
+  if(!(info.openIncidents||[]).length) incHtml='<p class="meta" style="margin:0">No incidents with pending follow-up in the system. ✓</p>';
+  else incHtml='<p class="meta" style="margin:0 0 6px"><b>Your logged incidents that asked for follow-up — confirm each one:</b></p>'
+    +(info.openIncidents||[]).map((x,i)=>'<div style="border:1px solid #dbe4f3;border-radius:9px;background:#fff;padding:9px 11px;margin:0 0 8px">'
+      +'<b>'+esc(x.ref)+' · '+esc(x.lab)+'</b> <small style="color:#6b7280">'+esc(x.date)+(x.note?' · '+esc(x.note):'')+'</small>'
+      +'<div class="grid2" style="margin-top:6px"><div><span class="lab req">Follow-up status</span><select id="psInc_'+i+'" data-ref="'+esc(x.ref)+'"><option value="">Select</option><option>Closed</option><option>Still pending</option></select></div>'
+      +'<div id="psIncNoteWrap_'+i+'" class="hidden"><span class="lab req">What is still pending?</span><input type="text" id="psIncNote_'+i+'" placeholder="Status / next step"></div></div></div>').join("");
+  h+=prepPanel("psD",'🚨 D · Incidents &amp; unstitched racks',
+    incHtml
+    +'<div class="grid2" style="margin-top:10px"><div><span class="lab req">Empty unstitched racks on the floor?</span><select id="psRack"><option value="">Select</option><option>None</option><option>Removed from the floor</option><option>Still on the floor</option></select></div></div>'
+    +'<div id="psRackWrap" class="hidden" style="margin-top:8px"><div class="grid2"><div><span class="lab req">How many?</span><input type="text" class="num" id="psRackCount" inputmode="numeric" placeholder="0"></div>'
+    +prepYN("psRackApp","Approved by your cluster manager?")+'</div></div>');
+  /* E — next day, back to normal (NO wagers / IT / HO) */
+  let staff='<p class="meta" style="margin:0 0 8px">Daily wagers, IT and head-office staff are <b>excluded</b> — the sale is over. Normal-roster groups only.</p>';
+  POST_GROUPS.forEach(g=>{
+    staff+='<div style="border:1px solid #dbe4f3;border-radius:10px;background:#fff;padding:10px 12px;margin:0 0 10px">'
+      +'<div style="font-weight:700;font-size:13.5px;margin-bottom:8px">'+g[1]+'</div>'
+      +'<div class="grid2">'+prepYN("psInf_"+g[0],"Informed of tomorrow's shift timings?")+'</div>'
+      +'<div class="grid2 ppSlot" id="psSlotRow1_'+g[0]+'"><div><span class="lab req">How many starting</span><input type="text" class="num" id="psCnt1_'+g[0]+'" inputmode="numeric" placeholder="0"></div>'
+      +'<div><span class="lab req">Start time</span><select id="psTime1_'+g[0]+'" class="timesel">'+T+'</select></div></div>'
+      +'<div class="grid2 ppSlot" id="psSlotRow2_'+g[0]+'" style="display:none"><div><span class="lab">…and how many more</span><input type="text" class="num" id="psCnt2_'+g[0]+'" inputmode="numeric" placeholder="0"></div>'
+      +'<div><span class="lab">Their start time</span><select id="psTime2_'+g[0]+'" class="timesel">'+T+'</select></div></div>'
+      +prepAddBtn("psMore_"+g[0],"add another start time")
+      +'</div>';
+  });
+  staff+='<div style="border:1px solid #dbe4f3;border-radius:10px;background:#fff;padding:10px 12px">'
+    +'<div style="font-weight:700;font-size:13.5px;margin-bottom:8px">Store manager — opening tomorrow</div>'
+    +'<div class="grid2"><div><span class="lab req">Name</span><input type="text" id="psMgrName" placeholder="Full name"></div>'
+    +'<div><span class="lab req">Starting at</span><select id="psMgrTime" class="timesel">'+T+'</select></div></div></div>';
+  h+=prepPanel("psE",'👥 E · Next day — back to normal shifts',staff);
+  /* F — the sale float goes BACK to the bank on Monday, with proof */
+  const fs2=info.floatSent;
+  h+=prepPanel("psF",'🏦 F · Sale float — return deposit (due Monday after closure)',
+    '<div style="background:#E8EFF8;border:1px solid #c9d6ee;border-radius:9px;padding:9px 12px;margin-bottom:10px;font-size:13px">'
+    +(fs2!=null?'<b>Head office transferred a sale float of PKR '+fmt(fs2)+'</b> to your store (per the HO transfer record).':'<b style="color:#8A5A00">No sale float on record for your store</b> — if you received one, note it below; head office will verify.')
+    +' It must be deposited back <b>straight after sale closure — Monday</b>, and the slip filed here.</div>'
+    +'<div class="grid2"><div><span class="lab req">Float amount your store actually received (PKR)</span><input type="text" class="num" id="psFloatGot" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab req">Float deposited back?</span><select id="psFloatDep"><option value="">Select</option><option>Yes</option><option>Not yet</option></select></div></div>'
+    +'<div id="psFloatMis" class="hidden" style="margin-top:8px"><span class="lab req">Received differs from the HO record — why?</span><input type="text" id="psFloatWhy" placeholder="Reason for the difference"></div>'
+    +'<div id="psFloatYes" class="hidden" style="margin-top:8px"><div class="grid2">'
+    +'<div><span class="lab req">Deposit bank</span><input type="text" id="psFloatBank" placeholder="e.g. MCB"></div>'
+    +'<div><span class="lab req">Deposit slip number</span><input type="text" id="psFloatSlip" placeholder="Slip #"></div>'
+    +'<div><span class="lab req">Employee 1 who went (name · payroll)</span><input type="text" id="psFloatE1" placeholder="Name — payroll no."></div>'
+    +'<div><span class="lab">Employee 2 who went (name · payroll)</span><input type="text" id="psFloatE2" placeholder="Name — payroll no."></div></div></div>'
+    +'<div id="psFloatNo" class="hidden" style="margin-top:8px"><span class="lab req">Why not yet, and when will it be deposited?</span><input type="text" id="psFloatWhen" placeholder="Reason + date"></div>');
+  h+='<div style="margin-top:4px"><span class="lab">Notes (optional)</span><input type="text" id="psNotes" placeholder="Anything the cluster manager should know"></div>';
+  b.innerHTML=h;
+  /* pending staff rows */
+  const pendRow=(i)=>'<div class="grid2" id="psPendRow'+i+'"'+(i>1?' style="display:none"':'')+'><div><span class="lab req">Staff name</span><input type="text" id="psPn'+i+'" placeholder="Full name"></div>'
+    +'<div><span class="lab req">Payroll no.</span><input type="text" class="num" id="psPp'+i+'" placeholder="Payroll"></div>'
+    +'<div><span class="lab req">Pending amount (PKR)</span><input type="text" class="num" id="psPa'+i+'" inputmode="numeric" placeholder="0"></div>'
+    +'<div><span class="lab req">Recovery plan / date</span><input type="text" id="psPd'+i+'" placeholder="e.g. salary deduction 5 Sep"></div></div>';
+  $("psPendRows").innerHTML=pendRow(1)+pendRow(2)+pendRow(3)+pendRow(4)+pendRow(5);
+  $("psPendMore").onclick=()=>{ for(let i=2;i<=5;i++){ const r=$("psPendRow"+i); if(r.style.display==="none"){ r.style.display=""; break; } } };
+  POST_GROUPS.forEach(g=>{ $("psMore_"+g[0]).onclick=()=>{ $("psSlotRow2_"+g[0]).style.display=""; }; });
+  const wire=()=>{ try{ localStorage.setItem(postKey(),JSON.stringify(postAnswers())); }catch(e){}
+    const rec=num($("psRecovered").value); const pend=(info.recoverable||0)-(isFinite(rec)?rec:0);
+    $("psPending").value=isFinite(rec)&&rec!==0||$("psRecovered").value!==""?("PKR "+fmt(Math.max(0,pend))):"";
+    $("psPendWrap").classList.toggle("hidden",!(isFinite(rec)&&pend>0));
+    (info.openIncidents||[]).forEach((x,i)=>{ $("psIncNoteWrap_"+i).classList.toggle("hidden",$("psInc_"+i).value!=="Still pending"); });
+    $("psRackWrap").classList.toggle("hidden",$("psRack").value!=="Still on the floor");
+    const t=num($("psFrTot").value),o=num($("psFrOk").value);
+    $("psFrWhy").classList.toggle("hidden",!(isFinite(t)&&isFinite(o)&&o<t));
+    if($("psFnRecovered")){ const fr=num($("psFnRecovered").value); const fpend=(info.fnTillTotal||0)-(isFinite(fr)?fr:0);
+      $("psFnPending").value=$("psFnRecovered").value!==""?("PKR "+fmt(Math.max(0,fpend))):"";
+      $("psFnWhy").classList.toggle("hidden",!(isFinite(fr)&&fpend>0)); }
+    const fg=num($("psFloatGot").value);
+    $("psFloatMis").classList.toggle("hidden",!(info.floatSent!=null&&isFinite(fg)&&$("psFloatGot").value!==""&&fg!==info.floatSent));
+    $("psFloatYes").classList.toggle("hidden",$("psFloatDep").value!=="Yes");
+    $("psFloatNo").classList.toggle("hidden",$("psFloatDep").value!=="Not yet"); };
+  b.querySelectorAll("input,select").forEach(el=>{ el.addEventListener("input",wire); el.addEventListener("change",wire); });
+  let d=null;
+  if(POST_REC&&POST_REC.answers) d=POST_REC.answers;
+  else { try{ d=JSON.parse(localStorage.getItem(postKey())||"null"); }catch(e){} }
+  if(d){ Object.keys(d).forEach(k=>{ const el=$("ps"+k); if(el&&!el.readOnly) el.value=d[k]; });
+    for(let i=2;i<=5;i++){ if(d["Pn"+i]||d["Pa"+i]) $("psPendRow"+i).style.display=""; }
+    POST_GROUPS.forEach(g=>{ if(d["Cnt2_"+g[0]]||d["Time2_"+g[0]]) $("psSlotRow2_"+g[0]).style.display=""; }); }
+  wire();
+  $("postSubmit").onclick=submitPost;
+}
+function postAnswers(){
+  const out={}; document.querySelectorAll("#postBody input,#postBody select").forEach(el=>{ if(el.id&&el.id.slice(0,2)==="ps"&&!el.readOnly) out[el.id.slice(2)]=el.value.trim(); });
+  return out;
+}
+async function submitPost(){
+  const a=postAnswers(); const M=$("postMsg");
+  const info=POST_INFO||{recoverable:0,byCashier:[],openIncidents:[]};
+  const need=(id,lab)=>{ if(!a[id]){ note(M,'Answer: "'+lab+'".',"bad"); return true; } return false; };
+  if(a.Recovered===""||isNaN(num(a.Recovered))){ note(M,"Enter the total cash shortage recovered from staff (0 if none).","bad"); return; }
+  const rec=num(a.Recovered), pend=(info.recoverable||0)-rec;
+  if(rec>(info.recoverable||0)){ note(M,"Recovered (PKR "+fmt(rec)+") cannot exceed the recoverable amount (PKR "+fmt(info.recoverable||0)+").","bad"); return; }
+  if(pend>0){
+    let sum=0, anyLine=false;
+    for(let i=1;i<=5;i++){
+      const n=a["Pn"+i], pr=a["Pp"+i], amt=a["Pa"+i], plan=a["Pd"+i];
+      if(!n&&!pr&&!amt&&!plan) continue;
+      anyLine=true;
+      if(!n||!pr||amt===""||isNaN(num(amt))||num(amt)<=0||!plan){ note(M,"Pending staff line "+i+": name, payroll, amount and recovery plan are all required.","bad"); return; }
+      sum+=num(amt);
+    }
+    if(!anyLine){ note(M,"PKR "+fmt(pend)+" is still pending — add the staff member(s) it is pending against.","bad"); return; }
+    if(sum!==pend){ note(M,"The pending staff lines add up to PKR "+fmt(sum)+" but PKR "+fmt(pend)+" is pending. They must match.","bad"); return; }
+  }
+  if(need("Sign","Sale signages corrected")||need("Counter","Cash counter clean and clear")||need("Floor","Floor set back to normal")||need("Clean","Cleaning and clearance")||need("Tills","Extra tills & queue poles stored")) return;
+  if(a.FrTot===""||isNaN(num(a.FrTot))){ note(M,"Enter the total number of fitting rooms.","bad"); return; }
+  if(a.FrOk===""||isNaN(num(a.FrOk))){ note(M,"Enter how many fitting rooms are fully operational.","bad"); return; }
+  if(num(a.FrOk)>num(a.FrTot)){ note(M,"Operational fitting rooms cannot exceed the total.","bad"); return; }
+  if(num(a.FrOk)<num(a.FrTot)&&!a.FrReason){ note(M,"Say why some fitting rooms are not operational.","bad"); return; }
+  for(let i=0;i<(info.openIncidents||[]).length;i++){
+    if(!a["Inc_"+i]){ note(M,"Incident "+info.openIncidents[i].ref+": say whether the follow-up is closed or still pending.","bad"); return; }
+    if(a["Inc_"+i]==="Still pending"&&!a["IncNote_"+i]){ note(M,"Incident "+info.openIncidents[i].ref+": say what is still pending.","bad"); return; }
+  }
+  if(need("Rack","Empty unstitched racks on the floor?")) return;
+  if(a.Rack==="Still on the floor"){
+    if(a.RackCount===""||isNaN(num(a.RackCount))||num(a.RackCount)<1){ note(M,"How many empty racks are still on the floor?","bad"); return; }
+    if(!a.RackApp){ note(M,"Say whether the racks still on the floor are approved by your cluster manager.","bad"); return; }
+  }
+  if((info.fnTillTotal||0)>0){
+    if(a.FnRecovered===""||a.FnRecovered==null||isNaN(num(a.FnRecovered))){ note(M,"Enter the fake-note amount recovered from staff (0 if none yet).","bad"); return; }
+    if(num(a.FnRecovered)>(info.fnTillTotal||0)){ note(M,"Fake-note recovery cannot exceed PKR "+fmt(info.fnTillTotal||0)+".","bad"); return; }
+    if(num(a.FnRecovered)<(info.fnTillTotal||0)&&!a.FnPlan){ note(M,"Fake notes: say who still owes and the recovery plan.","bad"); return; }
+  }
+  if((info.fnBankCount||0)>0&&!a.FnBank){ note(M,"Choose the treatment for the bank-found fake notes.","bad"); return; }
+  if(a.FloatGot===""||a.FloatGot==null||isNaN(num(a.FloatGot))){ note(M,"Enter the float amount your store actually received (0 if none).","bad"); return; }
+  if(info.floatSent!=null&&num(a.FloatGot)!==info.floatSent&&!a.FloatWhy){ note(M,"Your float figure differs from the HO record (PKR "+fmt(info.floatSent)+") — give the reason.","bad"); return; }
+  if(!a.FloatDep){ note(M,"Say whether the float has been deposited back.","bad"); return; }
+  if(a.FloatDep==="Yes"){
+    if(!a.FloatBank){ note(M,"Enter the deposit bank for the float return.","bad"); return; }
+    if(!a.FloatSlip){ note(M,"Enter the float-return deposit slip number.","bad"); return; }
+    if(!a.FloatE1){ note(M,"Enter at least one employee who went for the float deposit.","bad"); return; }
+  } else if(a.FloatDep==="Not yet"){
+    if(!a.FloatWhen){ note(M,"Say why the float is not yet deposited and when it will be.","bad"); return; }
+  }
+  for(const g of POST_GROUPS){
+    if(need("Inf_"+g[0],g[1]+" informed")) return;
+    if(a["Inf_"+g[0]]==="Yes"){
+      if(a["Cnt1_"+g[0]]===""||isNaN(num(a["Cnt1_"+g[0]]))||num(a["Cnt1_"+g[0]])<1){ note(M,g[1]+": enter how many are starting tomorrow.","bad"); return; }
+      if(!a["Time1_"+g[0]]){ note(M,g[1]+": pick the start time.","bad"); return; }
+      const c2=a["Cnt2_"+g[0]],t2=a["Time2_"+g[0]];
+      if((c2!==""&&c2!=null&&!t2)||((c2===""||c2==null)&&t2)){ note(M,g[1]+": the second start-time line needs BOTH a count and a time.","bad"); return; }
+    }
+  }
+  if(!a.MgrName){ note(M,"Enter the store manager opening tomorrow.","bad"); return; }
+  if(!a.MgrTime){ note(M,"Pick the store manager's starting time.","bad"); return; }
+  const p={ event:DAY.event, answers:a, recoverable:info.recoverable||0, pendingAmount:Math.max(0,pend),
+    fnTillTotal:info.fnTillTotal||0, fnTillPending:Math.max(0,(info.fnTillTotal||0)-num(a.FnRecovered||0)),
+    fnBankCount:info.fnBankCount||0, fnBankValue:info.fnBankValue||0, floatSent:info.floatSent,
+    openIncidentRefs:(info.openIncidents||[]).map(x=>x.ref),
+    enteredBy:a.MgrName, loggedAt:(SERVER.date||"")+" "+(SERVER.time||"") };
+  await send($("postSubmit"), M, { action:"post", payload:p }, ()=>{
+    note(M,"Post-sale confirmation submitted — your cluster manager will review it.","ok");
+    POST_REC=Object.assign({},p,{prepStatus:"submitted"});
+    try{ localStorage.removeItem(postKey()); }catch(e){}
+    updatePostCard(); startPost();
+  });
+}
+/* hook alongside the prep card refresh */
+const __showOrig2=show;
+show=function(id){ __showOrig2(id); if(id==="menu"&&typeof STORE!=="undefined"&&STORE&&STORE.code) updatePostCard(); };
+document.addEventListener("DOMContentLoaded",function(){ const b=$("postOpenBtn"); if(b) b.onclick=startPost; });
+if($("postOpenBtn")) $("postOpenBtn").onclick=startPost;
 
 </script>
 </body>
