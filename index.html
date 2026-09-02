@@ -487,8 +487,11 @@ const CONFIG = {
   #dayHome .dchip.due{background:#fef3e2;color:#b45309}
   #dayHome .dchip.future{background:#f3f4f6;color:#6b7280}
   #dayHome .dcard-foot{margin-top:10px;font-size:12.5px;font-weight:600;color:#2563eb}
-  #dayHome .task-strip{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
-  #dayHome .ts{flex:1 0 auto;min-width:84px;text-align:center;border:1px solid #eef0f3;border-radius:8px;padding:8px 5px;background:#fbfcfd}
+  /* 2 rows of 4 on a phone, one row of 8 on desktop. Never scrolls sideways —
+     Deposit is the last cell and must never sit off-screen. */
+  #dayHome .task-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+  @media(min-width:700px){ #dayHome .task-strip{grid-template-columns:repeat(8,minmax(0,1fr))} }
+  #dayHome .ts{min-width:0;text-align:center;border:1px solid #eef0f3;border-radius:8px;padding:8px 5px;background:#fbfcfd}
   #dayHome .ts-l{display:flex;align-items:center;justify-content:center;min-height:28px;font-size:11px;color:#6b7280;line-height:1.2}
   #dayHome .ts-s{display:block;font-size:12px;font-weight:700;margin-top:4px;line-height:1.2}
   #dayHome .ts-s.done{color:#16a34a} #dayHome .ts-s.pending{color:#8a8f98}
@@ -1589,13 +1592,18 @@ function renderDayHome(){
     {k:"support", l:"HO + IT attendance"}, {k:"deposit", l:"Deposit"},
   ];
   const SW = { done:{t:"Done",c:"done"}, pending:{t:"Pending",c:"pending"},
-               tomorrow:{t:"Due tomorrow",c:"tomorrow"}, overdue:{t:"Pending",c:"overdue"}, locked:{t:"Locked",c:"locked"} };
+               tomorrow:{t:"Due tomorrow",c:"tomorrow"}, overdue:{t:"Late",c:"overdue"}, locked:{t:"Locked",c:"locked"} };
   const rows = list.map(x => {
     const r = rel(x), stt = dayTaskStatus(x.day);
     let chip, chipCls;
     if(r==="future"){ chip = "Opens "+esc(x.date); chipCls = "future"; }
     else if(r==="today"){ chip = "Open now"; chipCls = "today"; }
-    else { const depDone = stt.deposit==="done"; chip = depDone ? "Complete" : "Deposit pending"; chipCls = depDone ? "today" : "due"; }
+    /* A past day is "Complete" only when every task is filed — not when the deposit
+       alone is in. The chip carries the real count so it can never overstate. */
+    else { const dn = T7.filter(t => stt[t.k]==="done").length, dtot = T7.length;
+           const allDone = dn===dtot, depDone = stt.deposit==="done";
+           chip = allDone ? "Complete" : dn+"/"+dtot+(depDone ? "" : " · deposit due");
+           chipCls = allDone ? "today" : "due"; }
     const strip = T7.map(t => { const s = SW[stt[t.k]] || SW.pending;
       return '<div class="ts"><span class="ts-l">'+esc(t.l)+'</span><span class="ts-s '+s.c+'">'+s.t+'</span></div>'; }).join("");
     const clickable = r!=="future";
