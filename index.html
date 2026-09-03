@@ -1260,6 +1260,13 @@ const INC_TYPES=[
    {id:"dealingMgr",lab:"Dealing manager name",req:1},
    {id:"entryTime",lab:"Store entry time",time:1},
    {id:"reportTime",lab:"Incident report time",time:1}]},
+ {id:"stocktheft",lab:"Stock theft (store merchandise)",prio:true,f:[
+   {id:"items",lab:"What was stolen — item / design details & quantity",req:1,ph:"e.g. 3 pcs design UQ-1052, size M"},
+   {id:"estValue",lab:"Estimated value (PKR)",req:1},
+   {id:"discovered",lab:"How it was discovered",req:1,ph:"CCTV / floor count / scan / other"},
+   {id:"suspect",lab:"Suspect details (if known)",ph:"Leave empty if unknown"},
+   {id:"police",lab:"Reported to police?",yn:1,req:1},
+   {id:"dealingMgr",lab:"Dealing manager name",req:1}]},
  {id:"lost",lab:"Lost & found",f:[
    {id:"foundBy",lab:"Who found it",req:1},
    {id:"handedTo",lab:"Handed over to",req:1},
@@ -1779,7 +1786,7 @@ async function refreshTasks(){
     if(sd.shift_guard) shifts.push({ module:"guard", requested:sd.shift_guard.requested, arrived:sd.shift_guard.arrived });
     const onDuty = shifts.reduce((a,s)=>a+Number(s.arrived||0),0);
     const deposits = Object.keys(all).filter(dn => all[dn] && all[dn].deposit).map(dn => ({ day:dn }));
-    TASKS = { status:{ picks:(sd.picks||[]), shifts, onDuty, rated:(sd.performance?sd.performance.rated:0),
+    TASKS = { status:{ picks:(sd.picks||[]), shifts, onDuty, rated:(sd.performance?sd.performance.rated:0), performanceFiled:!!sd.performance,
                        budget:(sd.budget||null), dayEnd:(sd.dayend||null), deposit:(sd.deposit||null) },
               deposits };
     renderTasks();
@@ -1819,8 +1826,17 @@ function taskDefs(){
   const w = shiftState("wager"), g = shiftState("guard");
 
   const perfReady = onDuty > 0;
+  /* both wagers AND guards filed with nobody arrived → nothing to rate, but the
+     record must still be filed so the cluster can sign off. One tap does it. */
+  const bothZero = st && (st.shifts||[]).length===2 && onDuty===0;
+  const perfFiled = !!(st && ((st.records && st.records.performance) || st.performanceFiled));
+  const noStaffDone = perfFiled && Number(rated||0)===0 && onDuty===0 && (st.shifts||[]).length===2;
   const perf = !perfReady
-    ? { state:"locked", text:"File daily wagers or security guards first" }
+    ? ( noStaffDone
+        ? { state:"done", text:"No wagers or guards today — confirmed, nothing to rate" }
+        : bothZero
+        ? { state:"todo", text:"No wagers or guards today — tap to confirm nothing to rate" }
+        : { state:"locked", text:"File daily wagers or security guards first" } )
     : rated >= onDuty && onDuty > 0
       ? { state:"done", text: rated + " of " + onDuty + " rated" }
       : { state:"todo", text: rated ? rated + " of " + onDuty + " rated" : onDuty + " people to rate" };
@@ -3222,6 +3238,21 @@ async function loadPerfPeople(){
     if(!o.ok){ note($("rStatusBox"),"Could not load today's attendance. Try again when you have signal.","bad"); return; }
     const people = o.people || [];
     if(!people.length){
+      const stx=(TASKS&&TASKS.status)||{};
+      if((stx.shifts||[]).length===2 && Number(stx.onDuty||0)===0){
+        /* both modules filed, zero people — offer the confirmation instead of a dead end */
+        $("rStatusBox").innerHTML='<div style="background:#FBEAE9;border:1.5px solid #e5b8b5;border-radius:9px;padding:10px 12px">'
+          +'<b>No daily wagers or security guards were engaged this day.</b><br>There is nobody to rate — confirm it so the day can be reviewed and signed off.'
+          +'<button type="button" class="btn btn-primary btn-block" id="rNoStaffBtn" style="margin-top:10px">Confirm: nothing to rate today</button></div>';
+        $("rNoStaffBtn").onclick=async()=>{
+          await send($("rNoStaffBtn"), $("rMsg"), { action:"performance",
+            payload:{ store:STORE.code, storeName:STORE.name, region:STORE.region,
+              event:DAY.event, day:String(DAY.day), dayDate:DAY.date, daySource:DAY.source, dayReason:DAY.reason,
+              people:[], noStaff:"Yes", note:"No daily wagers or security guards engaged this day — nothing to rate (store confirmed)" } },
+            ()=>{ note($("rMsg"),"Recorded: no wagers or guards to rate for Day "+DAY.day+".","ok"); refreshTasks(); });
+        };
+        PERF=[]; return;
+      }
       note($("rStatusBox"),"Nothing to rate yet. File the daily wagers and security guards sections for today first.","bad");
       return;
     }
