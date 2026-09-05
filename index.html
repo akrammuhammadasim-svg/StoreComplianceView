@@ -1524,7 +1524,12 @@ function showDayHome(){
 /* ---- 9am priority reminder: any past sale day whose cash has not been banked ---- */
 let REMINDER_DONE=false;
 function afterNine(){ const t=SERVER.time||""; const m=t.match(/^(\d{1,2}):(\d{2})/); if(!m) return false; return (+m[1])>9 || ((+m[1])===9 && (+m[2])>=0); }
-function overdueDeposits(){ const today=SERVER.date; return allDays().filter(x=> x.date && x.date<today).filter(x=>{ const sd=(STORE_DATA[STORE.code]||{})[String(x.day)]||{}; return !sd.deposit; }); }
+/* weekend-aware deposit due date: cash is banked the NEXT BANK WORKING day —
+   Sat/Sun are skipped, so Friday's and Saturday's cash are due Monday. */
+function nextBankDay(dateStr){ const d=new Date(dateStr+"T12:00:00"); d.setDate(d.getDate()+1);
+  while(d.getDay()===6||d.getDay()===0) d.setDate(d.getDate()+1);
+  return d.toISOString().slice(0,10); }
+function overdueDeposits(){ const today=SERVER.date; return allDays().filter(x=> x.date && today>=nextBankDay(x.date)).filter(x=>{ const sd=(STORE_DATA[STORE.code]||{})[String(x.day)]||{}; return !sd.deposit; }); }
 /* pull every past/current day's filed records from the server so locked records,
    day cards and the deposit reminder survive refresh, re-login and new devices */
 let HYDRATED=false;
@@ -1600,7 +1605,7 @@ function dayTaskStatus(dayNum){
   const sd = (STORE_DATA[STORE.code]||{})[String(dayNum)] || {};
   const dt = dateOfDay(dayNum), today = SERVER.date, future = dt > today;
   const st = k => sd[k] ? "done" : (future ? "locked" : "pending");
-  const dep = sd.deposit ? "done" : future ? "locked" : (dt===today ? "tomorrow" : "overdue");
+  const dep = sd.deposit ? "done" : future ? "locked" : (dt===today ? "tomorrow" : (today<nextBankDay(dt) ? "bankwknd" : "overdue"));
   return {
     pickups: (sd.picks && sd.picks.length) ? "done" : (future ? "locked" : "pending"),
     wagers: st("shift_wager"), guards: st("shift_guard"),
@@ -1625,7 +1630,8 @@ function renderDayHome(){
     {k:"support", l:"HO + IT attendance"}, {k:"deposit", l:"Deposit"},
   ];
   const SW = { done:{t:"Done",c:"done"}, pending:{t:"Pending",c:"pending"},
-               tomorrow:{t:"Due tomorrow",c:"tomorrow"}, overdue:{t:"Late",c:"overdue"}, locked:{t:"Locked",c:"locked"} };
+               tomorrow:{t:"Due tomorrow",c:"tomorrow"}, overdue:{t:"Late",c:"overdue"}, locked:{t:"Locked",c:"locked"},
+               bankwknd:{t:"🏦 Due Monday",c:"tomorrow"} };
   const rows = list.map(x => {
     const r = rel(x), stt = dayTaskStatus(x.day);
     let chip, chipCls;
@@ -1635,7 +1641,7 @@ function renderDayHome(){
        alone is in. The chip carries the real count so it can never overstate. */
     else { const dn = T7.filter(t => stt[t.k]==="done").length, dtot = T7.length;
            const allDone = dn===dtot, depDone = stt.deposit==="done";
-           chip = allDone ? "Complete" : dn+"/"+dtot+(depDone ? "" : " · deposit due");
+           chip = allDone ? "Complete" : dn+"/"+dtot+(depDone ? "" : (stt.deposit==="bankwknd" ? " · 🏦 deposit Monday" : " · deposit due"));
            chipCls = allDone ? "today" : "due"; }
     const strip = T7.map(t => { const s = SW[stt[t.k]] || SW.pending;
       return '<div class="ts"><span class="ts-l">'+esc(t.l)+'</span><span class="ts-s '+s.c+'">'+s.t+'</span></div>'; }).join("");
@@ -1648,7 +1654,10 @@ function renderDayHome(){
       + '</div>';
   }).join("");
   const host = $("dayHome");
-  host.innerHTML = banner + '<p class="grouphead">Your sale days — tap a day to open its tasks</p>' + rows;
+  const wkndNote = list.some(x => rel(x)!=="future" && dayTaskStatus(x.day).deposit==="bankwknd")
+    ? '<div class="daybox" style="background:#FDF3E2;border:1.5px solid #e8cf9a;color:#8A5A00;margin-top:8px"><b>🏦 Banks are closed this weekend.</b> Deposit each pending day\'s cash on <b>MONDAY</b> — one slip per day, each filed against its own day. Keep the cash secured in the vault until then.</div>'
+    : '';
+  host.innerHTML = banner + wkndNote + '<p class="grouphead">Your sale days — tap a day to open its tasks</p>' + rows;
   host.querySelectorAll(".dcard.clk").forEach(b => b.onclick = () => selectDayValue(b.dataset.dv));
 }
 function selectDayValue(v){ const x = allDays().find(y => dayValue(y)===v); if(x) selectDay(x); }
