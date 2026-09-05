@@ -1605,7 +1605,12 @@ function dayTaskStatus(dayNum){
   const sd = (STORE_DATA[STORE.code]||{})[String(dayNum)] || {};
   const dt = dateOfDay(dayNum), today = SERVER.date, future = dt > today;
   const st = k => sd[k] ? "done" : (future ? "locked" : "pending");
-  const dep = sd.deposit ? "done" : future ? "locked" : (dt===today ? "tomorrow" : (today<nextBankDay(dt) ? "bankwknd" : "overdue"));
+  const dep = (function(){ if(sd.deposit) return "done"; if(future) return "locked";
+    const nb = nextBankDay(dt); if(today >= nb) return "overdue";
+    const t1 = new Date(dt+"T12:00:00"); t1.setDate(t1.getDate()+1);
+    /* "Due tomorrow" only when tomorrow is a bank working day; else the bank is
+       closed tomorrow and the truthful label is "Due Monday" */
+    return (nb === t1.toISOString().slice(0,10)) ? "tomorrow" : "bankwknd"; })();
   return {
     pickups: (sd.picks && sd.picks.length) ? "done" : (future ? "locked" : "pending"),
     wagers: st("shift_wager"), guards: st("shift_guard"),
