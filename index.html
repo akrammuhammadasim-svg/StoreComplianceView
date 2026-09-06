@@ -3422,8 +3422,13 @@ async function loadSpentBefore(){
     note($("gStatusBox"), byDay ? "Already filed this event: " + byDay + "." : "Nothing filed for this event yet.", "info");
     if(o.thisDay) note($("gStatusBox"), "Day " + DAY.day + " already has " + fmt(o.thisDay) + " filed. Submitting again replaces it.", "info");
     budgetTally();
+    /* LIVE lock step (was preview-only): a saved budget shows the locked card with
+       🔒 Edit; Edit reveals the amendment-reason box — without this, re-submitting
+       a saved budget demanded a reason in a box that was never shown (dead-end). */
+    if(budgetFiled()){ renderBudgetLocked(); } budgetFormState();
   }catch(e){
     note($("gStatusBox"), "No connection, so earlier days could not be read. The remaining figure below may be incomplete.", "bad");
+    if(budgetFiled()){ renderBudgetLocked(); } budgetFormState();
   }
 }
 
@@ -3818,7 +3823,7 @@ if($("prepOpenBtn")) $("prepOpenBtn").onclick=startPrep;
 const POST_GROUPS=[["sale","Sale staff"],["guard","Security guards"],["jan","Janitorial staff"]];
 let POST_REC=null, POST_INFO=null;
 function postRecomputeByPayroll(){
-  const sd=STORE_DATA[STORE.code]||{}; const per={}; let found=false; let cardOffset=0;
+  const sd=STORE_DATA[STORE.code]||{}; const per={}; let found=false; let cardOffset=0, tks=0, tko=0;
   for(let dy=1;dy<=5;dy++){
     const de=(sd[String(dy)]||{}).dayend; if(!de) continue; found=true;
     let dks=0,dko=0; /* SAME-DAY card legs only — terminals settle within the store per day */
@@ -3831,13 +3836,13 @@ function postRecomputeByPayroll(){
       per[k].net+=cv+kv;
       if(kv<0)dks+=-kv; else if(kv>0)dko+=kv;
     });
-    cardOffset+=Math.min(dks,dko);
+    cardOffset+=Math.min(dks,dko); tks+=dks; tko+=dko;
   }
   if(!found) return null;
   const byCashier=[]; let recoverable=0;
   Object.keys(per).forEach(function(k){ if(per[k].net<0){ byCashier.push({cashier:per[k].cashier,payroll:per[k].payroll,owed:-per[k].net}); recoverable+=-per[k].net; } });
   byCashier.sort(function(a,b){return b.owed-a.owed;});
-  return {recoverable:recoverable,byCashier:byCashier,cardOffset:cardOffset};
+  return {recoverable:recoverable,byCashier:byCashier,cardOffset:cardOffset,cardShort:tks,cardExposure:Math.abs(tko-tks)};
 }
 function postWindow(){
   const days=((CONFIG.EVENTS[0]||{}).days)||[]; if(!days.length||!SERVER.date) return null;
@@ -3872,7 +3877,7 @@ async function startPost(){
      ("Aliza"/"Aleeza" on 17799 must be ONE person). Recompute recoverable from
      this store's own till lines keyed by payroll, and use it over the server's
      name+payroll split. Falls back to the server figure if no day-ends are here. */
-  try{ const rc=postRecomputeByPayroll(); if(rc && POST_INFO){ POST_INFO.recoverable=rc.recoverable; POST_INFO.byCashier=rc.byCashier; POST_INFO.cardOffset=rc.cardOffset; } }catch(e){}
+  try{ const rc=postRecomputeByPayroll(); if(rc && POST_INFO){ POST_INFO.recoverable=rc.recoverable; POST_INFO.byCashier=rc.byCashier; POST_INFO.cardOffset=rc.cardOffset; POST_INFO.cardShort=rc.cardShort; POST_INFO.cardExposure=rc.cardExposure; } }catch(e){}
   const st=POST_REC&&POST_REC.prepStatus, box=$("postStatusBox");
   if(st==="approved"){
     box.innerHTML='<div class="card"><div class="card-body"><div class="cl-signed">✓ <b>Post-sale confirmation approved</b> by '+esc(POST_REC.prepBy||"cluster manager")+(POST_REC.prepAt?' · '+esc(POST_REC.prepAt):'')+'.'+(POST_REC.prepRemarks?'<br><b>Remarks:</b> '+esc(POST_REC.prepRemarks):'')+'</div></div></div>';
@@ -3892,7 +3897,7 @@ function postRenderForm(){
     +navBtn("psA","💰 A · Cash recovery")+navBtn("psA2","🧾 A2 · Fake notes")+navBtn("psB","🏷 B · Back to normal")+navBtn("psC","🚪 C · Fitting rooms")+navBtn("psD","🚨 D · Incidents & racks")+navBtn("psE","👥 E · Next day")+navBtn("psF","🏦 F · Float return")+'</div>';
   /* A — cash recovery, reconciled against the cashier view */
   const cashList=(info.byCashier||[]).map(c=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0;border-bottom:1px dotted #e5e7eb"><span>'+esc(c.cashier)+' ('+esc(c.payroll)+')</span><b style="color:#B3261E">PKR '+fmt(c.owed)+'</b></div>').join("");
-  const tmWarn=(info.cardOffset||0)>1000 ? '<div style="background:#FDF3E2;border:1px solid #e8cf9a;border-radius:9px;padding:9px 12px;margin-bottom:8px;font-size:12.5px;color:#8A5A00">⚠ <b>Card shortages here offset card excesses at other tills on the SAME day (PKR '+fmt(info.cardOffset)+')</b> — usually the terminal settlement was split against the wrong tills, or a merchant terminal was not closed against the correct till. <b>Do NOT recover yet</b> — verify the terminal-wise settlement report; if the split is wrong, amend Till &amp; recon for those days (cluster approval) and this figure corrects itself.</div>' : '';
+  const tmWarn=(info.cardOffset||0)>1000 ? '<div style="background:#FDF3E2;border:1px solid #e8cf9a;border-radius:9px;padding:9px 12px;margin-bottom:8px;font-size:12.5px;color:#8A5A00">⚠ <b>PKR '+fmt(info.cardOffset)+' of card shortage is offset by card excess at other tills — same day.</b><br><b>Actual card exposure: PKR '+fmt(info.cardExposure||0)+'</b> (not PKR '+fmt(info.cardShort||0)+').<br>Check the terminal settlement report first.<br>Wrong split → amend Till &amp; recon. Report matches → recover as listed.</div>' : '';
   h+=prepPanel("psA",'💰 A · Cash recovery — reconciled against your cashier records',
     tmWarn+'<div style="background:#E8EFF8;border:1px solid #c9d6ee;border-radius:9px;padding:9px 12px;margin-bottom:10px;font-size:13px"><b>Recoverable from cashiers this event: PKR '+fmt(info.recoverable||0)+'</b> — each cashier\'s own cash + card net, shortages only (an excess at one till never cancels a shortage at another).'+(cashList?'<div style="margin-top:6px">'+cashList+'</div>':' No cashier shortages — nothing to recover.')+'</div>'
     +'<div class="grid2"><div><span class="lab req">Total cash shortage RECOVERED from staff (PKR)</span><input type="text" class="num" id="psRecovered" inputmode="numeric" placeholder="0"></div>'
