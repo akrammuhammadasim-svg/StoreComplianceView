@@ -3844,6 +3844,15 @@ function postRecomputeByPayroll(){
   byCashier.sort(function(a,b){return b.owed-a.owed;});
   return {recoverable:recoverable,byCashier:byCashier,cardOffset:cardOffset,cardShort:tks,cardExposure:Math.abs(tko-tks)};
 }
+/* Budget remainder to return = allocated − spent, from the store's OWN filed
+   budget records (latest day) — auto-computed, never typed by the store. */
+function postBudgetRemainder(){
+  const sd=STORE_DATA[STORE.code]||{}; let last=null;
+  for(let dy=5;dy>=1;dy--){ const b=(sd[String(dy)]||{}).budget; if(b&&(Number(b.allocated||0)||Number(b.spentToDate||0)||Number(b.dayTotal||0))){ last=b; break; } }
+  if(!last) return {found:false};
+  const alloc=Number(last.allocated||0), spent=Number(last.spentToDate||0);
+  return {found:true,alloc:alloc,spent:spent,rem:alloc?(alloc-spent):null};
+}
 function postWindow(){
   const days=((CONFIG.EVENTS[0]||{}).days)||[]; if(!days.length||!SERVER.date) return null;
   const last=days[days.length-1].date;
@@ -3894,7 +3903,7 @@ function postRenderForm(){
   const info=POST_INFO||{recoverable:0,byCashier:[],openIncidents:[]};
   const navBtn=(pid,lab)=>'<button type="button" onclick="document.getElementById(\''+pid+'\').scrollIntoView({behavior:\'smooth\'})" style="border:1px solid #c9d6ee;background:#fff;color:var(--sapphire);border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">'+lab+'</button>';
   let h='<div style="position:sticky;top:34px;z-index:5;background:#f6f7f9;padding:8px 0;margin:-4px 0 10px;display:flex;gap:7px;overflow-x:auto">'
-    +navBtn("psA","💰 A · Cash recovery")+navBtn("psA2","🧾 A2 · Fake notes")+navBtn("psB","🏷 B · Back to normal")+navBtn("psC","🚪 C · Fitting rooms")+navBtn("psD","🚨 D · Incidents & racks")+navBtn("psE","👥 E · Next day")+navBtn("psF","🏦 F · Float return")+'</div>';
+    +navBtn("psA","💰 A · Cash recovery")+navBtn("psA2","🧾 A2 · Fake notes")+navBtn("psB","🏷 B · Back to normal")+navBtn("psB2","💵 B2 · Budget remainder")+navBtn("psC","🚪 C · Fitting rooms")+navBtn("psD","🚨 D · Incidents & racks")+navBtn("psE","👥 E · Next day")+navBtn("psF","🏦 F · Float return")+'</div>';
   /* A — cash recovery, reconciled against the cashier view */
   const cashList=(info.byCashier||[]).map(c=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0;border-bottom:1px dotted #e5e7eb"><span>'+esc(c.cashier)+' ('+esc(c.payroll)+')</span><b style="color:#B3261E">PKR '+fmt(c.owed)+'</b></div>').join("");
   const tmWarn=(info.cardOffset||0)>1000 ? '<div style="background:#FDF3E2;border:1px solid #e8cf9a;border-radius:9px;padding:9px 12px;margin-bottom:8px;font-size:12.5px;color:#8A5A00">⚠ <b>PKR '+fmt(info.cardOffset)+' of card shortage is offset by card excess at other tills — same day.</b><br><b>Actual card exposure: PKR '+fmt(info.cardExposure||0)+'</b> (not PKR '+fmt(info.cardShort||0)+').<br>Check the terminal settlement report first.<br>Wrong split → amend Till &amp; recon. Report matches → recover as listed.</div>' : '';
@@ -3923,6 +3932,32 @@ function postRenderForm(){
     +prepYN("psFloor","Floor set back to normal")
     +prepYN("psClean","Outside, inside & stockroom cleaning and clearance done")
     +prepYN("psTills","Extra tills & queue poles packed and stored properly")+'</div>');
+  /* B2 — budget remainder return: figures AUTO-computed from filed budget records */
+  { const br=postBudgetRemainder();
+    let inner;
+    if(!br.found) inner='<p class="meta" style="margin:0">No budget records filed for this event — nothing to compute. If your store received budget cash, contact your cluster manager.</p>';
+    else{
+      const rows='<div style="background:#E8EFF8;border:1px solid #c9d6ee;border-radius:9px;padding:9px 12px;font-size:13px">'
+        +'<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dotted #d8dde5"><span>Budget allocated</span><b>PKR '+fmt(br.alloc)+'</b></div>'
+        +'<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dotted #d8dde5"><span>Spent (your filed records)</span><b>PKR '+fmt(br.spent)+'</b></div>'
+        +'<div style="display:flex;justify-content:space-between;padding:2px 0"><span><b>Remainder to deposit back</b></span><b style="color:#17457F">'+(br.rem==null?'—':'PKR '+fmt(Math.max(0,br.rem)))+'</b></div></div>';
+      if(br.rem==null) inner=rows+'<p class="meta" style="margin:8px 0 0">Allocation not on record — your cluster manager will confirm the remainder.</p>';
+      else if(br.rem===0) inner=rows+'<p style="margin:8px 0 0;color:#1B6B4A;font-weight:700;font-size:13px">✓ Budget fully spent — nothing to return.</p>';
+      else if(br.rem<0) inner=rows+'<p class="meta" style="margin:8px 0 0;color:#8A5A00"><b>Overspent by PKR '+fmt(-br.rem)+'</b> — nothing to return; the overspend reason is in your budget record.</p>';
+      else inner=rows
+        +'<div class="grid2" style="margin-top:9px"><div><span class="lab req">Remaining budget deposited to the bank?</span><select id="psBudDep"><option value="">Select</option><option>Yes</option><option>Not yet</option></select></div></div>'
+        +'<div id="psBudYes" class="hidden" style="margin-top:8px"><div class="grid2">'
+        +'<div><span class="lab req">Amount deposited (PKR)</span><input type="text" class="num" id="psBudAmt" inputmode="numeric" placeholder="0"></div>'
+        +'<div><span class="lab req">Deposit bank</span><input type="text" id="psBudBank" placeholder="e.g. MCB"></div>'
+        +'<div><span class="lab req">Deposit slip number</span><input type="text" id="psBudSlip" placeholder="Slip #"></div>'
+        +'<div><span class="lab req">Employee 1 who went (name · payroll)</span><input type="text" id="psBudE1" placeholder="Name — payroll no."></div>'
+        +'<div><span class="lab">Employee 2 who went (name · payroll)</span><input type="text" id="psBudE2" placeholder="Name — payroll no."></div></div>'
+        +'<div id="psBudMis" class="hidden" style="margin-top:8px"><span class="lab req">Deposited amount differs from the computed remainder — why?</span><input type="text" id="psBudWhy" placeholder="Reason for the difference"></div></div>'
+        +'<div id="psBudNo" class="hidden" style="margin-top:8px"><div style="background:#FDF3E2;border:1px solid #e8cf9a;border-radius:9px;padding:8px 11px;font-size:12.5px;color:#8A5A00;margin-bottom:6px">⏳ <b>PKR '+fmt(br.rem)+' budget remainder still with the store.</b> Deposit it back, then re-open this form and switch to Yes with the slip.</div>'
+        +'<span class="lab req">When will it be deposited?</span><input type="text" id="psBudWhen" placeholder="e.g. Monday 8 Sep, by 12 PM"></div>';
+    }
+    h+=prepPanel("psB2",'💵 B2 · Event budget remainder — auto-checked against your filed spends',inner);
+  }
   /* C — fitting rooms */
   h+=prepPanel("psC",'🚪 C · Fitting rooms',
     '<div class="grid2"><div><span class="lab req">Fitting rooms — total</span><input type="text" class="num" id="psFrTot" inputmode="numeric" placeholder="0"></div>'
@@ -3998,7 +4033,15 @@ function postRenderForm(){
     const fg=num($("psFloatGot").value);
     $("psFloatMis").classList.toggle("hidden",!(info.floatSent!=null&&isFinite(fg)&&$("psFloatGot").value!==""&&fg!==info.floatSent));
     $("psFloatYes").classList.toggle("hidden",$("psFloatDep").value!=="Yes");
-    $("psFloatNo").classList.toggle("hidden",$("psFloatDep").value!=="Not yet"); };
+    $("psFloatNo").classList.toggle("hidden",$("psFloatDep").value!=="Not yet");
+    /* B2 budget remainder toggles */
+    if($("psBudDep")){
+      $("psBudYes").classList.toggle("hidden",$("psBudDep").value!=="Yes");
+      $("psBudNo").classList.toggle("hidden",$("psBudDep").value!=="Not yet");
+      const br2=postBudgetRemainder();
+      const ba=num($("psBudAmt").value);
+      $("psBudMis").classList.toggle("hidden",!($("psBudDep").value==="Yes"&&$("psBudAmt").value!==""&&isFinite(ba)&&br2.found&&br2.rem!=null&&ba!==br2.rem));
+    } };
   b.querySelectorAll("input,select").forEach(el=>{ el.addEventListener("input",wire); el.addEventListener("change",wire); });
   let d=null;
   if(POST_REC&&POST_REC.answers) d=POST_REC.answers;
@@ -4037,6 +4080,20 @@ async function submitPost(){
   if(a.FrOk===""||isNaN(num(a.FrOk))){ note(M,"Enter how many fitting rooms are fully operational.","bad"); return; }
   if(num(a.FrOk)>num(a.FrTot)){ note(M,"Operational fitting rooms cannot exceed the total.","bad"); return; }
   if(num(a.FrOk)<num(a.FrTot)&&!a.FrReason){ note(M,"Say why some fitting rooms are not operational.","bad"); return; }
+  /* B2 — budget remainder gates (only when a positive remainder is computed) */
+  { const br=postBudgetRemainder();
+    if(br.found&&br.rem!=null&&br.rem>0){
+      if(!a.BudDep){ note(M,"B2: say whether the remaining budget (PKR "+fmt(br.rem)+") has been deposited to the bank.","bad"); return; }
+      if(a.BudDep==="Yes"){
+        if(a.BudAmt===""||isNaN(num(a.BudAmt))||num(a.BudAmt)<=0){ note(M,"B2: enter the amount deposited back.","bad"); return; }
+        if(!a.BudBank){ note(M,"B2: enter the deposit bank.","bad"); return; }
+        if(!a.BudSlip){ note(M,"B2: enter the deposit slip number.","bad"); return; }
+        if(!a.BudE1){ note(M,"B2: enter at least one employee who went for the deposit.","bad"); return; }
+        if(num(a.BudAmt)!==br.rem&&!a.BudWhy){ note(M,"B2: deposited PKR "+fmt(num(a.BudAmt))+" but the computed remainder is PKR "+fmt(br.rem)+" — give the reason for the difference.","bad"); return; }
+      } else if(a.BudDep==="Not yet"){
+        if(!a.BudWhen){ note(M,"B2: say when the remaining budget will be deposited.","bad"); return; }
+      }
+    } }
   for(let i=0;i<(info.openIncidents||[]).length;i++){
     if(!a["Inc_"+i]){ note(M,"Incident "+info.openIncidents[i].ref+": say whether the follow-up is closed or still pending.","bad"); return; }
     if(a["Inc_"+i]==="Still pending"&&!a["IncNote_"+i]){ note(M,"Incident "+info.openIncidents[i].ref+": say what is still pending.","bad"); return; }
